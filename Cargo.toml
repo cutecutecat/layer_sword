@@ -1,0 +1,27 @@
+[package]
+name = "layer_sword"
+version = "0.1.0"
+authors = ["cutecutecat"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+clap = "2.33"
+ctor = "0.1"
+flate2 = "1.0"
+fs_extra = "1.2"
+lazy_static = "1.4"
+log = "0.4"
+json = "0.12"
+regex = "1.4"
+sha2 = "0.9"
+simple_logger = "1.10"
+tar = "0.4"
+thiserror = "1.0"
+
+
+
+
+
