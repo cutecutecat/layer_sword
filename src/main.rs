@@ -6,16 +6,20 @@ mod merge;
 mod client;
 
 use std::env;
+use std::error::Error;
 
-use errors::Result;
+use log::error;
 
-// TODO: 優化clone
-// TODO: 测试用例
-// TODO: 文档
 use crate::client::cli_main;
 
-fn main() -> Result<()> {
+
+fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::builder().is_test(false).try_init().unwrap();
+
     let args: Vec<String> = env::args().collect();
-    cli_main(args)?;
+    if let Err(e) = cli_main(args){
+        error!("{}", e);
+        return Err(Box::new(e));
+    }
     Ok(())
 }

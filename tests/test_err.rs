@@ -4,10 +4,11 @@ use std::fs;
 
 use ctor::{ctor, dtor};
 use lazy_static::lazy_static;
-use simple_logger::SimpleLogger;
 
 use layer_sword::client::cli_main;
-use layer_sword::errors::{Result, Error};
+use layer_sword::errors::{LayerSwordError, TerminalError};
+
+type Result<T> = core::result::Result<T, LayerSwordError>;
 
 lazy_static! {
     static ref DIR_VEC: Vec<String> = vec![
@@ -17,7 +18,7 @@ lazy_static! {
 
 #[ctor]
 fn before() {
-    SimpleLogger::new().init().unwrap();
+    let _ = env_logger::builder().is_test(true).try_init();
     for dir_str in DIR_VEC.clone() {
         let dir_path = Path::new(&dir_str);
         if dir_path.exists() {
@@ -44,7 +45,7 @@ fn test_blank() -> Result<()> {
     let result = cli_main(args);
     assert!(result.is_err());
     let error_chk = result.or_else(|e| match e {
-        Error::ClapError { .. } => Err(e),
+        TerminalError::ClapError { .. } => Err(e),
         _ => Ok(())
     });
     assert!(error_chk.is_err());
@@ -65,7 +66,7 @@ fn test_conflicts() -> Result<()> {
     let result = cli_main(args);
     assert!(result.is_err());
     let error_chk = result.or_else(|e| match e {
-        Error::ClapError { .. } => Err(e),
+        TerminalError::ClapError { .. } => Err(e),
         _ => Ok(())
     });
     assert!(error_chk.is_err());
