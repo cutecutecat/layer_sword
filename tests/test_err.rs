@@ -6,13 +6,18 @@ use ctor::{ctor, dtor};
 use lazy_static::lazy_static;
 
 use layer_sword::client::cli_main;
-use layer_sword::errors::{LayerSwordError, TerminalError};
+use layer_sword::errors::{LayerSwordError};
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
 
 lazy_static! {
     static ref DIR_VEC: Vec<String> = vec![
-    "tests/out_conflicts", "tests/test_conflicts"
+    "tests/out_split_conflict", "tests/test_split_conflict",
+    "tests/out_split_no_info", "tests/out_split_no_info",
+    "tests/out_split_no_target", "tests/test_split_no_target",
+    "tests/out_merge_no_target", "tests/test_merge_no_target",
+    "tests/out_split_bad_extension", "tests/test_split_bad_extension",
+    "tests/out_split_bad_info", "tests/test_split_bad_info"
     ].iter().map(|s| s.to_string()).collect();
 }
 
@@ -45,7 +50,10 @@ fn test_blank() -> Result<()> {
     let result = cli_main(args);
     assert!(result.is_err());
     let error_chk = result.or_else(|e| match e {
-        TerminalError::ClapError { .. } => Err(e),
+        LayerSwordError::TerminalError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
         _ => Ok(())
     });
     assert!(error_chk.is_err());
@@ -53,20 +61,130 @@ fn test_blank() -> Result<()> {
 }
 
 #[test]
-fn test_conflicts() -> Result<()> {
+fn test_split_conflict() -> Result<()> {
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
         "-n", "os,lib,app",
         "-l", "1,3,1",
-        "-w", "tests/test_conflicts",
+        "-w", "tests/test_split_conflict",
         "-c", "tests/data/config.json",
-        "-o", "tests/out_conflicts",
+        "-o", "tests/out_split_conflict",
         "-t", "tests/data/base.tar"].iter().map(|s| s.to_string()).collect();
     let result = cli_main(args);
     assert!(result.is_err());
     let error_chk = result.or_else(|e| match e {
-        TerminalError::ClapError { .. } => Err(e),
+        LayerSwordError::TerminalError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
+        _ => Ok(())
+    });
+    assert!(error_chk.is_err());
+    Ok(())
+}
+
+#[test]
+fn test_split_no_info() -> Result<()> {
+    let args: Vec<String> = vec![
+        "target/release/layer_sword.exe",
+        "split",
+        "-w", "tests/test_split_no_info",
+        "-o", "tests/out_split_no_info",
+        "-t", "tests/data/base.tar"].iter().map(|s| s.to_string()).collect();
+    let result = cli_main(args);
+    assert!(result.is_err());
+    let error_chk = result.or_else(|e| match e {
+        LayerSwordError::TerminalError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
+        _ => Ok(())
+    });
+    assert!(error_chk.is_err());
+    Ok(())
+}
+
+#[test]
+fn test_split_no_target() -> Result<()> {
+    let args: Vec<String> = vec![
+        "target/release/layer_sword.exe",
+        "split",
+        "-w", "tests/test_split_no_target",
+        "-c", "tests/data/config.json",
+        "-o", "tests/out_split_no_target"].iter().map(|s| s.to_string()).collect();
+    let result = cli_main(args);
+    assert!(result.is_err());
+    let error_chk = result.or_else(|e| match e {
+        LayerSwordError::TerminalError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
+        _ => Ok(())
+    });
+    assert!(error_chk.is_err());
+    Ok(())
+}
+
+#[test]
+fn test_merge_no_target() -> Result<()> {
+    let args: Vec<String> = vec![
+        "target/release/layer_sword.exe",
+        "merge",
+        "-o", "tests/out_merge_no_target",
+        "-w", "tests/test_merge_no_target"].iter().map(|s| s.to_string()).collect();
+    let result = cli_main(args);
+    assert!(result.is_err());
+    let error_chk = result.or_else(|e| match e {
+        LayerSwordError::TerminalError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
+        _ => Ok(())
+    });
+    assert!(error_chk.is_err());
+    Ok(())
+}
+
+#[test]
+fn test_split_bad_extension() -> Result<()> {
+    let args: Vec<String> = vec![
+        "target/release/layer_sword.exe",
+        "split",
+        "-w", "tests/test_split_bad_extension",
+        "-c", "tests/data/config.json",
+        "-o", "tests/out_split_bad_extension",
+        "-t", "tests/data/config.json"].iter().map(|s| s.to_string()).collect();
+    let result = cli_main(args);
+    assert!(result.is_err());
+    let error_chk = result.or_else(|e| match e {
+        LayerSwordError::FileCheckError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
+        _ => Ok(())
+    });
+    assert!(error_chk.is_err());
+    Ok(())
+}
+
+#[test]
+fn test_split_bad_info() -> Result<()> {
+    let args: Vec<String> = vec![
+        "target/release/layer_sword.exe",
+        "split",
+        "-n", "os,lib,app",
+        "-l", "1,4,1",
+        "-w", "tests/test_split_bad_info",
+        "-o", "tests/out_split_bad_info",
+        "-t", "tests/data/base.tar"].iter().map(|s| s.to_string()).collect();
+    let result = cli_main(args);
+    assert!(result.is_err());
+    let error_chk = result.or_else(|e| match e {
+        LayerSwordError::FileCheckError { .. } => {
+            println!("{}", e);
+            Err(e)
+        }
         _ => Ok(())
     });
     assert!(error_chk.is_err());

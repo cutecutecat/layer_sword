@@ -5,11 +5,11 @@ use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
 pub enum LayerSwordError {
-    #[error("Something happened unexpectedly")]
+    #[error("[Something happened unexpectedly]")]
     InternalError(#[from] InternalError),
-    #[error("Error of terminal")]
+    #[error("[Error from terminal inspection]")]
     TerminalError(#[from] TerminalError),
-    #[error("File checked failed")]
+    #[error("[Error from file inspection]")]
     FileCheckError(#[from] FileCheckError),
 }
 
@@ -55,7 +55,7 @@ pub enum FileCheckError {
     BadDockerFileError { msg: String },
     #[error("Checksum is not valid\nright:'{right}'\nreal:'{real}'")]
     HashCheckError { right: String, real: String },
-    #[error("File should have {extension} at path:\n'{path}'")]
+    #[error("File should have extension '{extension}' at path:\n'{path}'")]
     FileExtensionError { extension: String, path: PathBuf },
     #[error(transparent)]
     FromUtf8Error(#[from] FromUtf8Error),

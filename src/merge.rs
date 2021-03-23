@@ -61,10 +61,10 @@ fn extract_to_directory(tar_vec: Vec<PathBuf>, split_path: &Path)
         dir_name.push(split_name);
         fs::create_dir(&dir_name).unwrap();
         if tar_file.extension().unwrap_or_default() != "tar" {
-            FileCheckError::FileExtensionError {
+            return Err(FileCheckError::FileExtensionError {
                 extension: format!("tar"),
                 path: tar_file.clone(),
-            };
+            });
         }
         extract_tar(&tar_file, &dir_name);
 

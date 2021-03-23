@@ -43,16 +43,16 @@ fn deduct_split_map(split_names: &Vec<String>,
     if addup_flag == "" {
         if (layer_dir_set.len() as i16) != layer_num {
             return Err(FileCheckError::BadDockerFileError {
-                msg: format!("layers per split(without deduct) sum to '{:?}', \
-                                not equal to real layers '{:?}'",
+                msg: format!("layers per split(without deduct) sum to {}, \
+                                not equal to real layers {}",
                              layer_num, layer_dir_set.len()),
             });
         }
     } else {
         if layer_num > (layer_dir_set.len() - 1) as i16 {
             return Err(FileCheckError::BadDockerFileError {
-                msg: format!("layers per split(with deduct) sum to '{:?}', \
-                                larger than real layers '{:?}'",
+                msg: format!("layers per split(with deduct) sum to {}, \
+                                larger than real layers {}",
                              layer_num, layer_dir_set.len()),
             });
         }

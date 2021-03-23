@@ -3,11 +3,12 @@ use std::collections::HashMap;
 
 use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
+use log::{error, LevelFilter};
 
 use crate::split::split_layer;
 use crate::merge::merge_layer;
 use crate::util::{load_config, init_path};
-use crate::errors::TerminalError;
+use crate::errors::{TerminalError, LayerSwordError};
 
 
 fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
@@ -157,8 +158,8 @@ fn prepare_splits_info(names: Vec<String>, layers: Vec<String>)
     Ok((split_names, split_map))
 }
 
-pub fn cli_main(args: Vec<String>) -> Result<(), TerminalError> {
-    let matches = App::new("LayerSword")
+pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
+    let result: Result<ArgMatches, TerminalError> = App::new("LayerSword")
         .version("0.1.0")
         .author("cutecutecat")
         .about("Split or merge image files")
@@ -264,15 +265,29 @@ pub fn cli_main(args: Vec<String>) -> Result<(), TerminalError> {
                 .long("output")
                 .takes_value(true)
                 .value_name("DIRECTORY")
-                .default_value("tmp")
+                .default_value("out")
                 .help("Path of output directory"))
             .arg(Arg::with_name("silence")
                 .short("s")
                 .long("silence")
                 .help("Not print anything to terminal"))
-        ).get_matches_from_safe(args)?;
+        ).get_matches_from_safe(args).map_err(|e: clap::Error| {
+        error!("{}", e);
+        e.into()
+    });
+    let matches = result?;
 
-    if !matches.is_present("silence") {
+    if matches.is_present("silence") {
+        env_logger::builder()
+            .filter_level(LevelFilter::Off)
+            .is_test(false)
+            .try_init()
+            .unwrap();
+    }else{
+        env_logger::builder()
+            .is_test(false)
+            .try_init()
+            .unwrap();
     }
     if let Some(sub) = matches.subcommand_matches("split") {
         let (target_path, work_path, out_path) =
@@ -296,25 +311,33 @@ pub fn cli_main(args: Vec<String>) -> Result<(), TerminalError> {
         if sub.is_present("config") {
             let (split_names, split_map) = parse_cfg_from_file(sub)?;
             init_path(work_path);
-            // TODO:测试下这里能不能unwrap
-            split_layer(target_path, split_names, split_map,
-                        work_path, out_path, level).unwrap();
+            if let Err(e) = split_layer(target_path, split_names, split_map,
+                                        work_path, out_path, level) {
+                error!("{}", e);
+                return Err(e.into());
+            }
         } else if sub.is_present("names") & sub.is_present("layers") {
             let (split_names, split_map) = parse_cfg_from_cli(sub)?;
             init_path(work_path);
-            split_layer(target_path, split_names, split_map,
-                        work_path, out_path, level).unwrap();
+            if let Err(e) = split_layer(target_path, split_names, split_map,
+                                        work_path, out_path, level) {
+                error!("{}", e);
+                return Err(e.into());
+            }
         } else {
-            TerminalError::WithoutArgError {
+            return Err(TerminalError::WithoutArgError {
                 arg: format!("(names && layers) || config"),
                 msg: matches.usage().to_string(),
-            };
+            }.into());
         }
     } else if let Some(sub) = matches.subcommand_matches("merge") {
         let (target_path, work_path, out_path) =
             parse_path(&sub, "merge")?;
         init_path(work_path);
-        merge_layer(target_path, work_path, out_path).unwrap();
+        if let Err(e) = merge_layer(target_path, work_path, out_path) {
+            error!("{}", e);
+            return Err(e.into());
+        }
     }
     Ok(())
 }
