@@ -21,7 +21,7 @@ pub enum InternalError {
     KeyError { key: String },
     #[error("Error occurred when parsing path:\n'{path}'")]
     FilePathError { path: PathBuf },
-    #[error("An impossiable error occurred:\n{msg:?}")]
+    #[error("An impossible error occurred:\n{msg:?}")]
     ImpossibleError { msg: String },
 }
 

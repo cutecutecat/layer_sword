@@ -182,7 +182,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .short("n")
                 .long("names")
                 .takes_value(true)
-                .value_name("STRING,STRING...")
+                .value_name("STR,STR...")
                 .use_delimiter(true)
                 .required_unless("config")
                 .conflicts_with("config")
@@ -217,17 +217,17 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .long("output")
                 .takes_value(true)
                 .value_name("DIRECTORY")
-                .default_value("tmp")
+                .default_value("out")
                 .help("Path of output directory"))
-            .arg(Arg::with_name("silence")
-                .short("s")
-                .long("silence")
+            .arg(Arg::with_name("quiet")
+                .short("q")
+                .long("quiet")
                 .help("Not print anything to terminal"))
             .arg(Arg::with_name("level")
                 .short("v")
                 .long("level")
                 .takes_value(true)
-                .default_value("default")
+                .default_value("6")
                 .value_name("INT[0-9]/NONE/FAST/DEFAULT/BEST")
                 .possible_value("0")
                 .possible_value("1")
@@ -241,7 +241,6 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .possible_value("9")
                 .possible_value("none")
                 .possible_value("fast")
-                .possible_value("default")
                 .possible_value("best")
                 .case_insensitive(true)
                 .help("Compress level of tar.gz split file(0->none, 1->fast,...9->best)")))
@@ -259,7 +258,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .takes_value(true)
                 .value_name("DIRECTORY")
                 .default_value("tmp")
-                .help("Path of temporary working directory")).
+                .help("Path of temporary worksiing directory")).
             arg(Arg::with_name("output")
                 .short("o")
                 .long("output")
@@ -267,27 +266,28 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .value_name("DIRECTORY")
                 .default_value("out")
                 .help("Path of output directory"))
-            .arg(Arg::with_name("silence")
-                .short("s")
-                .long("silence")
+            .arg(Arg::with_name("quiet")
+                .short("q")
+                .long("quiet")
                 .help("Not print anything to terminal"))
         ).get_matches_from_safe(args).map_err(|e: clap::Error| {
+        env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
         error!("{}", e);
         e.into()
     });
     let matches = result?;
 
-    if matches.is_present("silence") {
+    if matches.is_present("quiet") {
         env_logger::builder()
             .filter_level(LevelFilter::Off)
             .is_test(false)
             .try_init()
-            .unwrap();
-    }else{
+            .unwrap_or_else(|_| {});
+    } else {
         env_logger::builder()
             .is_test(false)
             .try_init()
-            .unwrap();
+            .unwrap_or_else(|_| {});
     }
     if let Some(sub) = matches.subcommand_matches("split") {
         let (target_path, work_path, out_path) =

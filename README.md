@@ -58,25 +58,57 @@ layer_sword软件中，根目录下src目录为源码集合，tests目录为测�
 
 #### 安装教程
 
-1.  从源码编译时，可以先clone项目到本地，移动到项目文件夹下，运行`Cargo run --bin layer_sword --release`构建项目，可执行文件是自动生成的release文件夹下的`layer_sword.exe`或`layer_sword`
-2.  也可以使用随项目提供的可执行文件`layer_sword.exe`或`layer_sword`直接运行
+1.  从源码编译时，可以先clone项目到本地，移动到项目文件夹下，运行`Cargo run --bin layer_sword --release`构建项目，可执行文件是自动生成的release文件夹下的`layer_sword.exe`（Windows）或`layer_sword`（Linux）
+2.  也可以使用随项目提供的可执行文件`layer_sword.exe`（Windows）或`layer_sword`（Linux）直接运行
 
 #### 使用说明
 
 1.  准备好本机上的镜像，或者使用`docker pull [mirror name]`命令拉取镜像
 2.  使用`docker save -o [mirror.tar] [mirror name]`命令将指定镜像保存成 tar 归档文件
 3.  利用`layer_sword split`命令对tar归档文件进行分割，并对获得的压缩子集分别进行对应归档
-4.  利用`layer_sword merge`命令对tar.gz归档分割进行合并，获得等效原始tar 归档文件
+4.  利用`layer_sword merge`命令对tar.gz归档分割进行合并，获得等效原始tar归档文件
+
+#### 命令介绍
+
+**split子命令**
+
+| 参数     | 简称 | 取值                  | 描述                                   | 强制                     |
+| -------- | ---- | --------------------- | -------------------------------------- | ------------------------ |
+| --config | -c   | \<FILE\>              | 从用户指定的配置文件获得分割信息       | 和[name && layers]二选一 |
+| --name   | -n   | \<STR, STR...\>       | 指定分割各子集名称                     | 和[config]二选一         |
+| --layers | -l   | \<INT, INT...\>       | 指定分割各子集含有层数量               | 和[config]二选一         |
+| --target | -t   | \<FILE\>              | 指定镜像归档文件路径                   | 是                       |
+| --output | -o   | \<DIRECTORY\>         | 指定的子集输出路径                     | 否，默认值`./out`        |
+| --work   | -w   | \<DIRECTORY\>         | 指定的工作临时文件夹                   | 否，默认值`./out`        |
+| --level  | -v   | 0-9, none, fast, best | 指定分割子集压缩等级，越高大压缩率越高 | 否，默认值6              |
+| --quiet  | -q   | 无                    | 启用时，程序静默运行，不输出信息       |                          |
+
+**merge子命令**
+
+| 参数     | 简称 | 取值          | 描述                             | 强制              |
+| -------- | ---- | ------------- | -------------------------------- | ----------------- |
+| --target | -t   | \<DIRECTORY\> | 指定分割子集所在文件夹路径       | 是                |
+| --output | -o   | \<DIRECTORY\> | 指定的子集输出路径               | 否，默认值`./out` |
+| --work   | -w   | \<DIRECTORY\> | 指定的工作临时文件夹             | 否，默认值`./out` |
+| --quiet  | -q   | 无            | 启用时，程序静默运行，不输出信息 |                   |
 
 #### 使用示例
 
 `layer_sword split -n os,lib,app -l 1,3,1 -t base.tar`
 
-将base.tar文件自底向上分为`os`、`lib`和`app`三个压缩子集，分别含有1层、3层、1层layer。
+将`base.tar`镜像归档文件自底向上分为`os`、`lib`和`app`三个压缩子集，分别含有1层、3层、1层layer。临时工作目录为当前目录下的`tmp`文件夹（默认），输出文件在当前目录下的`out`文件夹（默认）。
 
-`layer_sword split -n os,lib -l 1,-1 -t base.tar`
+`layer_sword split -n os,lib -l 1,-1 -t base.tar -s -w work`
 
-将base.tar文件自底向上分为`os`和`lib`两个压缩子集，前者含有1层layer，后者含有剩余所有层layer。
+将`base.tar`镜像归档文件自底向上分为`os`和`lib`两个压缩子集，前者含有1层layer，后者含有剩余所有层layer。除此之外，运行过程中不输出提示信息。临时工作目录为当前目录下的`work`文件夹（用户指定），输出文件在当前目录下的out文件夹（默认）。
 
+`layer_sword split -c config.json -t base.tar -o splits`
 
+将`base.tar`镜像归档文件根据config.json配置文件中的信息分割为压缩子集。临时工作目录为当前目录下的`tmp`文件夹（默认），输出文件在当前目录下的`splits`文件夹（用户指定）。
+
+`layer_sword merge -t splits`
+
+将`splits`文件夹下所有的分割子集合并为等效镜像归档文件。临时工作目录为当前目录下的`tmp`文件夹（默认），输出文件在当前目录下的splits文件夹（用户指定）。
+
+#### 技术细节
 
