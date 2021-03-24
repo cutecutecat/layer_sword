@@ -3,7 +3,7 @@ use std::path::Path;
 use std::fs;
 use std::collections::HashMap;
 
-use ctor::{ctor, dtor};
+use ctor::ctor;
 use lazy_static::lazy_static;
 
 use layer_sword::inspector::inspect;
@@ -29,7 +29,7 @@ lazy_static! {
 
 #[ctor]
 fn before() {
-    let _ = env_logger::builder().is_test(true).try_init();
+    env_logger::builder().is_test(true).try_init().unwrap_or_else(|_| {});
     for dir in DIR_VEC.clone() {
         let dir_path = Path::new(&dir);
         if dir_path.exists() {
@@ -39,19 +39,9 @@ fn before() {
     }
 }
 
-#[dtor]
-fn after() {
-    for dir in DIR_VEC.clone() {
-        let dir_path = Path::new(&dir);
-        if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap();
-        }
-    }
-}
-
 #[test]
 fn test_init_path() -> Result<()> {
-    log::info!("Test for 'init_path' function.");
+    // log::info!("Test for 'init_path' function.");
     let work_path = Path::new("tests/test_init_path");
     init_path(work_path);
     let split_path = Path::new("tests/test_init_path/split");
@@ -113,7 +103,6 @@ fn test_split_layer() -> Result<()> {
 
     Ok(())
 }
-
 
 
 #[test]

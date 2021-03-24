@@ -95,10 +95,6 @@ pub fn compress_tar<P>(tar_path: P, extract_path: P)
     tar.mode(tar::HeaderMode::Deterministic);
     let all_extracted_paths= WalkDir::new(extract_path)
         .sort_by_key(|item: &DirEntry| item.clone().into_path());
-    // let mut all_extracted_paths: Vec<_> = read_dir(extract_path)
-    //     .unwrap()
-    //     .filter_map(|r| r.ok())
-    //     .collect();
     for entry in all_extracted_paths {
         let entry = entry.unwrap();
         let item_path = entry.path();

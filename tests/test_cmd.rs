@@ -2,7 +2,7 @@
 use std::path::Path;
 use std::fs;
 
-use ctor::{ctor, dtor};
+use ctor::ctor;
 use lazy_static::lazy_static;
 
 use layer_sword::client::cli_main;
@@ -22,23 +22,13 @@ lazy_static! {
 
 #[ctor]
 fn before() {
-    let _ = env_logger::builder().is_test(true).try_init();
+    env_logger::builder().is_test(true).try_init().unwrap_or_else(|_| {});
     for dir_str in DIR_VEC.clone() {
         let dir_path = Path::new(&dir_str);
         if dir_path.exists() {
             fs::remove_dir_all(dir_path).unwrap();
         }
         fs::create_dir(dir_path).unwrap();
-    }
-}
-
-#[dtor]
-fn after() {
-    for dir_path in DIR_VEC.clone() {
-        let dir_path = Path::new(&dir_path);
-        if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap();
-        }
     }
 }
 

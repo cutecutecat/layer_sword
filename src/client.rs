@@ -297,7 +297,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 arg: format!("level"),
                 msg: sub.usage().to_string(),
             })?;
-        let level_map: HashMap<&str, u8> = [("none", 0), ("fast", 1), ("default", 6), ("best", 9)]
+        let level_map: HashMap<&str, u8> = [("none", 0), ("fast", 1), ("best", 9)]
             .iter().cloned().collect();
         let level_from_map = level_map.get(level_str);
         let level_from_conv = level_str.parse::<u8>();
