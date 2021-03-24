@@ -52,10 +52,9 @@ fn extract_to_directory(tar_vec: Vec<PathBuf>, split_path: &Path)
                         -> Result<HashMap<usize, SplitConfig>, FileCheckError> {
     let mut split_config_map: HashMap<usize, SplitConfig> = HashMap::new();
     for tar_file in tar_vec {
-        let tar_pathbuf = tar_file.clone();
-        let split_name = tar_pathbuf
+        let split_name = tar_file
             .file_name()
-            .ok_or_else(|| InternalError::FilePathError { path: tar_pathbuf.clone() })
+            .ok_or_else(|| InternalError::FilePathError { path: tar_file.clone() })
             .unwrap();
         let mut dir_name = PathBuf::from(split_path);
         dir_name.push(split_name);

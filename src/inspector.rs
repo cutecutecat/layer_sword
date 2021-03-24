@@ -34,12 +34,12 @@ fn inspect_route(extract_path: &Path)
         // 查找manifest
         if manifest_path.components().next().is_none() && now_path == "manifest.json" {
             manifest_path.push(extract_path);
-            manifest_path.push(now_path.clone());
+            manifest_path.push(&now_path);
         }
         // 查找repositories
         if repositories_path.components().next().is_none() && now_path == "repositories" {
             repositories_path.push(extract_path);
-            repositories_path.push(now_path.clone());
+            repositories_path.push(&now_path);
         }
         // 查找config和layer
         let judge_sha256 = expr_layer_and_config.is_match(&*now_path);
@@ -54,10 +54,10 @@ fn inspect_route(extract_path: &Path)
                 }
                 config_num += 1;
                 config_path.push(extract_path);
-                config_path.push(now_path.clone());
+                config_path.push(&now_path);
             } else {
                 // this is a layer
-                layer_hash_set.insert(now_path.clone());
+                layer_hash_set.insert(now_path);
             }
         }
     }

@@ -10,10 +10,10 @@ use crate::inspector::inspect;
 use crate::util::{compress_tar, compress_tar_gz, dump_config, fetch_file_sha256, get_stack_id, extract_tar};
 
 fn deduct_split_map(split_names: &Vec<String>,
-                    split_map: &HashMap<String, i16>,
+                    split_map: HashMap<String, i16>,
                     layer_dir_set: &Vec<PathBuf>)
                     -> Result<HashMap<String, i16>, FileCheckError> {
-    let mut deduct_map = split_map.clone();
+    let mut deduct_map = split_map;
     let mut layer_num: i16 = 0;
     let mut addup_flag: String = String::new();
     for name in split_names {
@@ -26,7 +26,7 @@ fn deduct_split_map(split_names: &Vec<String>,
                 addup_flag = name.clone();
             } else {
                 return Err(InternalError::ImpossibleError {
-                    msg: format!("more than 1 split of -1 layers: '{:?}' and '{:?}'",
+                    msg: format!("more than 1 split of -1 layers: '{}' and '{}'",
                                  addup_flag, name),
                 }).unwrap();
             }
@@ -190,7 +190,7 @@ pub fn split_layer(tar_path: &Path,
     log::info!("[inspect end]");
     log::info!("Validating number of each layer");
     let deduct_map =
-        deduct_split_map(&split_names, &split_map, &layer_dir_set)?;
+        deduct_split_map(&split_names, split_map, &layer_dir_set)?;
     log::info!("Copying layer directories inside splits into dock image");
     copy_split_directories(&split_names, &deduct_map,
                            &layer_dir_set, &split_pathbuf);

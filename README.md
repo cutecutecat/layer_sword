@@ -80,7 +80,7 @@ layer_sword软件中，根目录下src目录为源码集合，tests目录为测�
 | --target | -t   | \<FILE\>              | 指定镜像归档文件路径                   | 是                       |
 | --output | -o   | \<DIRECTORY\>         | 指定的子集输出路径                     | 否，默认值`./out`        |
 | --work   | -w   | \<DIRECTORY\>         | 指定的工作临时文件夹                   | 否，默认值`./out`        |
-| --level  | -v   | 0-9, none, fast, best | 指定分割子集压缩等级，越高大压缩率越高 | 否，默认值6              |
+| --level  | -v   | 0-9, none, fast, best | 指定分割子集压缩等级，数值越大压缩率越高 | 否，默认值6              |
 | --quiet  | -q   | 无                    | 启用时，程序静默运行，不输出信息       |                          |
 
 **merge子命令**

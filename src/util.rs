@@ -1,4 +1,4 @@
-use std::fs::{File, read_to_string, write, read_dir};
+use std::fs::{File, read_to_string, write};
 use std::{io, fs};
 use std::path::{Path, PathBuf};
 
@@ -8,10 +8,9 @@ use json::JsonValue;
 
 use flate2::{Compression, GzBuilder};
 use flate2::read::GzDecoder;
-
+use walkdir::{WalkDir, DirEntry};
 
 use crate::errors::{FileCheckError, InternalError};
-
 
 // 解压缩tar.gz文件
 pub fn extract_tar_gz<P>(gz_path: P, extract_path: P)
@@ -94,16 +93,17 @@ pub fn compress_tar<P>(tar_path: P, extract_path: P)
     let file = File::create(tar_path).unwrap();
     let mut tar = tar::Builder::new(file);
     tar.mode(tar::HeaderMode::Deterministic);
-    let all_extracted_paths = read_dir(extract_path).unwrap();
+    let all_extracted_paths= WalkDir::new(extract_path)
+        .sort_by_key(|item: &DirEntry| item.clone().into_path());
+    // let mut all_extracted_paths: Vec<_> = read_dir(extract_path)
+    //     .unwrap()
+    //     .filter_map(|r| r.ok())
+    //     .collect();
     for entry in all_extracted_paths {
         let entry = entry.unwrap();
-        let item_pathbuf = entry.path();
+        let item_path = entry.path();
         let item_name = entry.file_name();
-        if item_pathbuf.is_dir() {
-            tar.append_dir_all(item_name, item_pathbuf).unwrap();
-        } else {
-            tar.append_path_with_name(item_pathbuf, item_name).unwrap();
-        }
+        tar.append_path_with_name(item_path, item_name).unwrap();
     }
 }
 
