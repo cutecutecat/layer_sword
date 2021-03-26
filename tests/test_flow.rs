@@ -41,7 +41,7 @@ fn before() {
 
 #[test]
 fn test_init_path() -> Result<()> {
-    // log::info!("Test for 'init_path' function.");
+    log::info!("Test for 'init_path' function.");
     let work_path = Path::new("tests/test_init_path");
     init_path(work_path);
     let split_path = Path::new("tests/test_init_path/split");
