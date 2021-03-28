@@ -41,12 +41,6 @@ fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
     } else if !target_path.is_dir() && mode == "merge" {
         return Err(TerminalError::NotDirectoryError { path: target.to_string() });
     }
-    if !out_path.exists() {
-        return Err(TerminalError::NotExistError { path: target.to_string() });
-    }
-    if !out_path.is_dir() {
-        return Err(TerminalError::NotDirectoryError { path: target.to_string() });
-    }
     Ok((target_path, work_path, out_path))
 }
 
