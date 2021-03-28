@@ -86,19 +86,19 @@ fn test_split_layer() -> Result<()> {
     let os_path = Path::new("tests/out_split_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
     let os_right =
-        format!("1444a680a0d364083479cf40a35d0a458230ace1587e5180f7c451ce8288c071");
+        format!("78847ae9c6eef8cd1e84fd76d244bcc96ce45f60b6166a0a0a16ff8e858c8da4");
     assert_eq!(os_hash, os_right);
 
     let lib_path = Path::new("tests/out_split_layer/lib.tar.gz");
     let lib_hash = fetch_file_sha256(lib_path);
     let lib_right =
-        format!("03b898decb769660a3933aa043ed9e09c486496c3d2afac8b54a1984b61884db");
+        format!("87134c9d4507bfe21be863ecf4ff90a0392bd08ee6a4ad803f8b9c81c1e0318f");
     assert_eq!(lib_hash, lib_right);
 
     let app_path = Path::new("tests/out_split_layer/app.tar.gz");
     let app_hash = fetch_file_sha256(app_path);
     let app_right =
-        format!("8e56648c9688ec56fc63b350029a73f09ce2d98830dcf53d656eb3135cea48a3");
+        format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
 
     Ok(())
@@ -126,19 +126,19 @@ fn test_deduction() -> Result<()> {
     let os_path = Path::new("tests/out_deduction/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
     let os_right =
-        format!("1444a680a0d364083479cf40a35d0a458230ace1587e5180f7c451ce8288c071");
+        format!("78847ae9c6eef8cd1e84fd76d244bcc96ce45f60b6166a0a0a16ff8e858c8da4");
     assert_eq!(os_hash, os_right);
 
     let lib_path = Path::new("tests/out_deduction/lib.tar.gz");
     let lib_hash = fetch_file_sha256(lib_path);
     let lib_right =
-        format!("03b898decb769660a3933aa043ed9e09c486496c3d2afac8b54a1984b61884db");
+        format!("87134c9d4507bfe21be863ecf4ff90a0392bd08ee6a4ad803f8b9c81c1e0318f");
     assert_eq!(lib_hash, lib_right);
 
     let app_path = Path::new("tests/out_deduction/app.tar.gz");
     let app_hash = fetch_file_sha256(app_path);
     let app_right =
-        format!("8e56648c9688ec56fc63b350029a73f09ce2d98830dcf53d656eb3135cea48a3");
+        format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
 
     Ok(())
@@ -167,25 +167,25 @@ fn test_split_four_layer() -> Result<()> {
     let os_path = Path::new("tests/out_split_four_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
     let os_right =
-        format!("1444a680a0d364083479cf40a35d0a458230ace1587e5180f7c451ce8288c071");
+        format!("78847ae9c6eef8cd1e84fd76d244bcc96ce45f60b6166a0a0a16ff8e858c8da4");
     assert_eq!(os_hash, os_right);
 
     let sys_path = Path::new("tests/out_split_four_layer/sys.tar.gz");
     let sys_hash = fetch_file_sha256(sys_path);
     let sys_right =
-        format!("6ab1d0f0d3e5ebe0f2da1fc1bffd2a645fee6407d14ec45a3ce8f9bc77b4305f");
+        format!("062f2165910f5699aa7509fabed901c494d503c413491241b703ad51c2f00dd4");
     assert_eq!(sys_hash, sys_right);
 
     let lib_path = Path::new("tests/out_split_four_layer/lib.tar.gz");
     let lib_hash = fetch_file_sha256(lib_path);
     let lib_right =
-        format!("ab16d417100ec3689f393f185597fcfd9f2313ca98cc524df2961309710d42a0");
+        format!("2b19936c3c03947fa115b0c74321e8629c6f5b1dcd189e445384ae0ad72903e3");
     assert_eq!(lib_hash, lib_right);
 
     let app_path = Path::new("tests/out_split_four_layer/app.tar.gz");
     let app_hash = fetch_file_sha256(app_path);
     let app_right =
-        format!("e2db3aa24616d2d807711c128eb7392dd4297483b4f3f402a9a29caeff8305f0");
+        format!("8e654b72a036bbe9c4557f35c45f605830bff5249c9e36fbef5d61542de9605d");
     assert_eq!(app_hash, app_right);
 
     Ok(())
@@ -210,13 +210,13 @@ fn test_split_two_layer() -> Result<()> {
     let os_path = Path::new("tests/out_split_two_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
     let os_right =
-        format!("1444a680a0d364083479cf40a35d0a458230ace1587e5180f7c451ce8288c071");
+        format!("78847ae9c6eef8cd1e84fd76d244bcc96ce45f60b6166a0a0a16ff8e858c8da4");
     assert_eq!(os_hash, os_right);
 
     let lib_path = Path::new("tests/out_split_two_layer/lib.tar.gz");
     let lib_hash = fetch_file_sha256(lib_path);
     let lib_right =
-        format!("5e047d5fedcfb1b703cf4a18251305fa8c11ffe9441d2d10fd0daea1f0eb55fc");
+        format!("ec151b9edfdd803fe50365e3415248ef6648b89aed94933a26e8f51fdd9e1569");
     assert_eq!(lib_hash, lib_right);
 
     Ok(())
@@ -234,7 +234,7 @@ fn test_merge() -> Result<()> {
     let tar_path = Path::new("tests/out_merge/merge.tar");
     let tar_hash = fetch_file_sha256(tar_path);
     let tar_right =
-        format!("1203eb785534ec43619880aef42e08bbe7a0ba1f1e10315863bcfe8f6542cea2");
+        format!("a82e3d4bcf3194ec7841f6f1f2b4ce34d1107c23ef4e42d4e5073224858cc56b");
     assert_eq!(tar_hash, tar_right);
     Ok(())
 }
@@ -248,16 +248,32 @@ fn test_compress_best() -> Result<()> {
     init_path(work_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
+    split_names.push(format!("lib"));
+    split_names.push(format!("app"));
     let mut split_map: HashMap<String, i16> = HashMap::new();
-    split_map.insert(format!("os"), -1);
+    split_map.insert(format!("os"), 1);
+    split_map.insert(format!("lib"), -1);
+    split_map.insert(format!("app"), 1);
     let compress_level: u8 = 9;
     split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
 
     let os_path = Path::new("tests/out_compress_best/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
     let os_right =
-        format!("f01ee5d4b1a78fe483762761afa40a5d8e324503a6bfdd8c92a0e357b2dbea8d");
+        format!("4d8e2ffdb06608da91278e5bfa3aff87bd69c7e88f562bfa62f1e2274ebfa43a");
     assert_eq!(os_hash, os_right);
+
+    let lib_path = Path::new("tests/out_compress_best/lib.tar.gz");
+    let lib_hash = fetch_file_sha256(lib_path);
+    let lib_right =
+        format!("37ebf36672232ee91a03e1ec0f33bd5f3063f380cf9e50d048d1df3e582e6057");
+    assert_eq!(lib_hash, lib_right);
+
+    let app_path = Path::new("tests/out_compress_best/app.tar.gz");
+    let app_hash = fetch_file_sha256(app_path);
+    let app_right =
+        format!("25b75bc8a75d4a2be082d9e5a2c6dd1e86641fc22e39158aedcf911d62c3296e");
+    assert_eq!(app_hash, app_right);
 
     Ok(())
 }

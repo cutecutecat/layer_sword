@@ -57,6 +57,8 @@ pub enum FileCheckError {
     HashCheckError { right: String, real: String },
     #[error("File should have extension '{extension}' at path:\n'{path}'")]
     FileExtensionError { extension: String, path: PathBuf },
+    #[error("File have item '{path}' more than 2")]
+    TooManyDepthError { path: String },
     #[error(transparent)]
     FromUtf8Error(#[from] FromUtf8Error),
 }

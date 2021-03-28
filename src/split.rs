@@ -121,7 +121,7 @@ fn copy_split_files(split_names: &Vec<String>,
 fn pack_into_gz(split_names: &Vec<String>,
                 split_pathbuf: &PathBuf,
                 out_pathbuf: &PathBuf,
-                compress_level: u8) {
+                compress_level: u8) -> Result<(), FileCheckError>{
     // 配置文件 parent_id, diff_id, is_top, is_bottom
     // parrent_id = sha256(zip parrent)
     // stack_id = (parrent stack id+'\n'parrent id or '\n')
@@ -149,7 +149,7 @@ fn pack_into_gz(split_names: &Vec<String>,
 
         let mut compress_path = split_pathbuf.clone();
         compress_path.push(name);
-        compress_tar(&tar_pathbuf, &compress_path);
+        compress_tar(&tar_pathbuf, &compress_path)?;
         parent_id = fetch_file_sha256(&tar_pathbuf);
         fs::remove_dir_all(compress_path).unwrap();
 
@@ -159,6 +159,7 @@ fn pack_into_gz(split_names: &Vec<String>,
         gz_pathbuf.set_extension("tar.gz");
         compress_tar_gz(&gz_pathbuf, &tar_pathbuf, compress_level);
     }
+    Ok(())
 }
 
 // inspect -> BadDockerFileError
@@ -199,7 +200,7 @@ pub fn split_layer(tar_path: &Path,
     log::info!("Packing items into tar.gz file under {}",
                &out_path.to_str().ok_or_else(|| InternalError::ConvertError).unwrap());
     pack_into_gz(&split_names, &split_pathbuf,
-                 &out_path.to_path_buf(), compress_level);
+                 &out_path.to_path_buf(), compress_level)?;
     log::info!("Clean items inside work path");
     fs::remove_dir_all(work_path).unwrap();
     Ok(())

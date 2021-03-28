@@ -1,16 +1,17 @@
 use std::fs::{File, read_to_string, write};
 use std::{io, fs};
 use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
 
 use tar::Archive;
 use sha2::{Sha256, Digest};
 use json::JsonValue;
-
 use flate2::{Compression, GzBuilder};
 use flate2::read::GzDecoder;
 use walkdir::{WalkDir, DirEntry};
 
 use crate::errors::{FileCheckError, InternalError};
+
 
 // 解压缩tar.gz文件
 pub fn extract_tar_gz<P>(gz_path: P, extract_path: P)
@@ -72,7 +73,7 @@ pub fn compress_tar_gz<P>(gz_path: P, file_path: P, compress_level: u8)
     let gz_file = File::create(gz_path).unwrap();
     let enc = GzBuilder::new()
         .comment(fetch_file_sha256(&file_path))
-        .write(gz_file, Compression::new(compress_level as u32));
+        .write(gz_file, Compression::new(compress_level.into()));
 
     let mut tar = tar::Builder::new(enc);
     tar.mode(tar::HeaderMode::Deterministic);
@@ -85,22 +86,50 @@ pub fn compress_tar_gz<P>(gz_path: P, file_path: P, compress_level: u8)
     tar.append_file(filename, &mut file).unwrap();
 }
 
+fn iter_child_path(entry: &DirEntry) -> PathBuf {
+    // mask name of split
+    let mut depth = entry.depth() - 1;
+    let mut mid_list: Vec<&OsStr> = vec![entry.file_name()];
+    let mut mid_path = entry.path();
+    while depth > 0 {
+        mid_path = mid_path.parent().unwrap();
+        let mid_name = mid_path.file_name().unwrap();
+        mid_list.push(mid_name);
+        depth -= 1;
+    }
+    let mut child_name: PathBuf = mid_list.pop().unwrap().into();
+    while mid_list.len() > 0 {
+        let mid_name = mid_list.pop().unwrap();
+        child_name.push(mid_name);
+    }
+    child_name
+}
+
 // 压缩tar文件
 // std::io::Error
-pub fn compress_tar<P>(tar_path: P, extract_path: P)
+pub fn compress_tar<P>(tar_path: P, extract_path: P) -> Result<(), FileCheckError>
     where
         P: AsRef<Path> {
     let file = File::create(tar_path).unwrap();
     let mut tar = tar::Builder::new(file);
     tar.mode(tar::HeaderMode::Deterministic);
-    let all_extracted_paths= WalkDir::new(extract_path)
+    let all_extracted_paths = WalkDir::new(extract_path)
         .sort_by_key(|item: &DirEntry| item.clone().into_path());
     for entry in all_extracted_paths {
         let entry = entry.unwrap();
         let item_path = entry.path();
-        let item_name = entry.file_name();
+        let item_name: PathBuf;
+        if entry.depth() == 0 {
+            continue;
+        } else if entry.depth() <= 2 {
+            item_name = iter_child_path(&entry);
+        } else {
+            let path = entry.path().to_str().unwrap_or_default().to_string();
+            return Err(FileCheckError::TooManyDepthError { path });
+        }
         tar.append_path_with_name(item_path, item_name).unwrap();
     }
+    Ok(())
 }
 
 // 初始化工作路径

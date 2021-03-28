@@ -187,7 +187,7 @@ pub fn merge_layer(target_path: &Path, work_path: &Path, out_path: &Path)
     inspect(&merge_pathbuf)?;
     log::info!("[inspect end]");
     log::info!("Compressing merged dock image files to tar file");
-    compress_tar(&tar_pathbuf, &merge_pathbuf);
+    compress_tar(&tar_pathbuf, &merge_pathbuf)?;
     log::info!("Cleaning items inside work path");
     fs::remove_dir_all(work_path).unwrap();
     Ok(())
