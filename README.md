@@ -200,28 +200,28 @@ layer_sword软件中，根目录下src目录为源码集合，tests目录为测�
 **86%**（利用tarpaulin检测）
 
 ```
-Mar 28 22:43:53.277  INFO cargo_tarpaulin::report: Coverage Results:
+Mar 29 04:42:38.134  INFO cargo_tarpaulin::report: Coverage Results:
 || Uncovered Lines:
-|| src/client.rs: 18-19, 23-24, 28-29, 37, 40, 42, 51-52, 56, 59, 66, 70, 74-77, 91-92, 99-100, 107-108, 122-124, 139-141, 145-147, 275-276, 279, 291-292, 300, 322-325, 332-333
+|| src/client.rs: 15-16, 19, 33-34, 38-39, 43-44, 52, 55, 57, 66-67, 71, 74, 81, 85, 89-92, 106-107, 114-115, 122-123, 137-139, 154-156, 160-162, 294-295, 303, 327-330, 340-341
 || src/inspector.rs: 32, 50-52, 65, 67, 69, 84, 92, 96-98, 108-109, 118, 124-126, 139-141, 158, 161-162, 181-182, 188-189, 196-197, 200-201, 210-211, 224, 227-228, 233-234, 239-241, 249-250, 257-259, 265-266, 274-275, 282, 287, 289-290
 || src/main.rs: 14-17
 || src/merge.rs: 29-31, 63-65, 78, 92, 97, 129-131, 135-137, 150, 178
 || src/split.rs: 28-29, 35-36, 53-54, 56, 112, 179, 201
-|| src/util.rs: 37, 49, 127-128, 141-142, 147
+|| src/util.rs: 37, 49, 127-128, 141-142, 149-150, 155, 159
 || tests/test_err.rs: 47, 71, 92, 113, 133, 155, 178
 || Tested/Total Lines:
-|| src/client.rs: 125/171 +0%
+|| src/client.rs: 130/176 +0%
 || src/inspector.rs: 124/179 +0%
 || src/main.rs: 0/4 +0%
 || src/merge.rs: 97/114 +0%
 || src/split.rs: 108/118 +0%
-|| src/util.rs: 100/107 +0%
+|| src/util.rs: 105/115 +0%
 || tests/test_cmd.rs: 65/65 +0%
 || tests/test_err.rs: 79/86 +0%
-|| tests/test_flow.rs: 184/184 +0%
+|| tests/test_flow.rs: 186/186 +0%
 || tests/test_util.rs: 22/22 +0%
 ||
-86.10% coverage, 904/1050 lines covered, +0% change in coverage
+86.01% coverage, 916/1065 lines covered, +0% change in coverage
 ```
 
 ### 压力测试
