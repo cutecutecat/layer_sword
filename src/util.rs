@@ -133,7 +133,7 @@ pub fn compress_tar<P>(tar_path: P, extract_path: P) -> Result<(), FileCheckErro
 }
 
 // 初始化工作路径
-pub fn init_path(handle_path: &Path) {
+pub fn init_path(handle_path: &Path, out_path: &Path) {
     if handle_path.exists() {
         if handle_path.is_dir()
         {
@@ -142,9 +142,21 @@ pub fn init_path(handle_path: &Path) {
             fs::remove_file(handle_path).unwrap();
         }
     }
+    if out_path.exists() {
+        if out_path.is_dir()
+        {
+            fs::remove_dir_all(out_path).unwrap();
+        } else if out_path.is_file() {
+            fs::remove_file(out_path).unwrap();
+        }
+    }
     let mut ret = fs::create_dir(handle_path);
     while ret.is_err() {
         ret = fs::create_dir(handle_path);
+    }
+    let mut ret = fs::create_dir(out_path);
+    while ret.is_err() {
+        ret = fs::create_dir(out_path);
     }
 
     let mut split_path = handle_path.clone().to_path_buf();

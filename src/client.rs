@@ -3,13 +3,28 @@ use std::collections::HashMap;
 
 use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
-use log::{error, LevelFilter};
+use log::{error, LevelFilter, info};
 
 use crate::split::split_layer;
 use crate::merge::merge_layer;
 use crate::util::{load_config, init_path};
 use crate::errors::{TerminalError, LayerSwordError};
 
+fn parse_and_set_logger(sub: &ArgMatches) {
+    if sub.is_present("quiet") {
+        env_logger::builder()
+            .filter_level(LevelFilter::Off)
+            .is_test(false)
+            .try_init()
+            .unwrap_or_else(|_| {});
+    } else {
+        env_logger::builder()
+            .filter_level(LevelFilter::Info)
+            .is_test(false)
+            .try_init()
+            .unwrap_or_else(|_| {});
+    }
+}
 
 fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
                   -> Result<(&'a Path, &'a Path, &'a Path), TerminalError> {
@@ -271,18 +286,6 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
     });
     let matches = result?;
 
-    if matches.is_present("quiet") {
-        env_logger::builder()
-            .filter_level(LevelFilter::Off)
-            .is_test(false)
-            .try_init()
-            .unwrap_or_else(|_| {});
-    } else {
-        env_logger::builder()
-            .is_test(false)
-            .try_init()
-            .unwrap_or_else(|_| {});
-    }
     if let Some(sub) = matches.subcommand_matches("split") {
         let (target_path, work_path, out_path) =
             parse_path(&sub, "split")?;
@@ -303,16 +306,18 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         }
 
         if sub.is_present("config") {
+            parse_and_set_logger(&sub);
             let (split_names, split_map) = parse_cfg_from_file(sub)?;
-            init_path(work_path);
+            init_path(work_path, out_path);
             if let Err(e) = split_layer(target_path, split_names, split_map,
                                         work_path, out_path, level) {
                 error!("{}", e);
                 return Err(e.into());
             }
         } else if sub.is_present("names") & sub.is_present("layers") {
+            parse_and_set_logger(&sub);
             let (split_names, split_map) = parse_cfg_from_cli(sub)?;
-            init_path(work_path);
+            init_path(work_path, out_path);
             if let Err(e) = split_layer(target_path, split_names, split_map,
                                         work_path, out_path, level) {
                 error!("{}", e);
@@ -325,9 +330,12 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
             }.into());
         }
     } else if let Some(sub) = matches.subcommand_matches("merge") {
+        parse_and_set_logger(&sub);
         let (target_path, work_path, out_path) =
             parse_path(&sub, "merge")?;
-        init_path(work_path);
+        init_path(work_path, out_path);
+
+
         if let Err(e) = merge_layer(target_path, work_path, out_path) {
             error!("{}", e);
             return Err(e.into());
