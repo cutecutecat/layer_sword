@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
-use log::{error, LevelFilter, info};
+use log::{error, LevelFilter};
 
 use crate::split::split_layer;
 use crate::merge::merge_layer;

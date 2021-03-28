@@ -16,8 +16,8 @@ type Result<T> = core::result::Result<T, LayerSwordError>;
 
 lazy_static! {
     static ref DIR_VEC: Vec<String> = vec![
-        "tests/test_init_path",
-        "tests/test_inspect",
+        "tests/out_init_path", "tests/test_init_path",
+        "tests/out_inspect", "tests/test_inspect",
         "tests/out_split_layer", "tests/test_split_layer",
         "tests/out_deduction", "tests/test_deduction",
         "tests/out_split_four_layer", "tests/test_split_four_layer",
@@ -43,6 +43,7 @@ fn before() {
 fn test_init_path() -> Result<()> {
     log::info!("Test for 'init_path' function.");
     let work_path = Path::new("tests/test_init_path");
+    let out_path = Path::new("tests/out_init_path");
     init_path(work_path, out_path);
     let split_path = Path::new("tests/test_init_path/split");
     let merge_path = Path::new("tests/test_init_path/merge");
@@ -57,6 +58,7 @@ fn test_inspect() -> Result<()> {
     log::info!("Test for 'extract_tar' and 'inspect' functions.");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/test_inspect");
+    let out_path = Path::new("tests/out_inspect");
     init_path(work_path, out_path);
     let merge_path = Path::new("tests/test_inspect/merge");
     extract_tar(tar_path, merge_path);
