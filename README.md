@@ -224,9 +224,9 @@ Mar 28 22:43:53.277  INFO cargo_tarpaulin::report: Coverage Results:
 86.10% coverage, 904/1050 lines covered, +0% change in coverage
 ```
 
-### 性能测试
+### 压力测试
 
-我们选取了来自英伟达的镜像`nvcr.io/nvidia/tensorrt:21.02-py3`，这个镜像是人工智能模型推理加速工具`tensorRT`的官方镜像，有`5.7GB`的大小和`18`的层数，非常适合测试`layer_sword`对于超大镜像的处理性能。测试运行时，采用了最常见的`os`、`lib`、`app`分别为1，-1，1层的分割方案。
+我们选取了来自英伟达的镜像`nvcr.io/nvidia/tensorrt:21.02-py3`，这个镜像是人工智能模型推理加速工具`tensorRT`的官方镜像，有`5.7GB`的大小和`43`的层数，非常适合测试`layer_sword`对于超大镜像的处理性能。测试运行时，采用了最常见的`os`、`lib`、`app`分别为1，-1，1层的分割方案。
 
 **split测试**
 
