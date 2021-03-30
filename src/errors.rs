@@ -61,4 +61,6 @@ pub enum FileCheckError {
     TooManyDepthError { path: String },
     #[error(transparent)]
     FromUtf8Error(#[from] FromUtf8Error),
+    #[error("Splits unmatched with more than 1 index '{index}'")]
+    SplitsUnmatchedError { index: usize },
 }

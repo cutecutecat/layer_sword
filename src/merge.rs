@@ -100,6 +100,9 @@ fn extract_to_directory(tar_vec: Vec<PathBuf>, split_path: &Path)
             .as_usize()
             .ok_or(InternalError::ConvertError)
             .unwrap();
+        if split_config_map.contains_key(&index) {
+            return Err(FileCheckError::SplitsUnmatchedError { index });
+        }
         split_config_map.insert(index, config_body);
     }
     Ok(split_config_map)
