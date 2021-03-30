@@ -48,10 +48,11 @@
 
 ### 使用流程
 
-1.  准备好本机上的镜像，或者使用`docker pull [mirror name]`命令拉取镜像
-2.  使用`docker save -o [mirror.tar] [mirror name]`命令将指定镜像保存成 tar 归档文件
-3.  利用`layer_sword split`命令对tar归档文件进行分割，并对获得的压缩子集分别进行对应归档
-4.  利用`layer_sword merge`命令对tar.gz归档分割进行合并，获得等效原始tar归档文件
+1.  准备好本机上的镜像，或者使用`docker pull [mirror name]`或类似命令拉取镜像
+2.  使用`docker save -o [mirror.tar] [mirror name]`或类似命令将指定镜像保存成`tar`归档文件
+3.  利用`layer_sword split`命令对`tar`归档文件进行分割，并对获得的压缩子集分别进行对应归档
+4.  利用`layer_sword merge`命令对`tar.gz`分割子集进行合并，获得等效原始tar归档文件
+5.  使用`docker load -i [mirror.tar]`或类似命令将`tar`归档文件进行导入
 
 ## 使用教程
 
@@ -62,7 +63,7 @@
 | 参数     | 简称 | 取值                  | 描述                                 | 强制                     |
 | -------- | ---- | --------------------- | ------------------------------------ | ------------------------ |
 | --config | -c   | \<FILE\>              | 从用户指定的配置文件获得分割信息     | 和[name && layers]二选一 |
-| --name   | -n   | \<STR, STR...\>       | 指定分割各子集名称                   | 和[config]二选一         |
+| --names  | -n   | \<STR, STR...\>       | 指定分割各子集名称                   | 和[config]二选一         |
 | --layers | -l   | \<INT, INT...\>       | 指定分割各子集含有层数量             | 和[config]二选一         |
 | --target | -t   | \<FILE\>              | 指定镜像归档文件路径                 | 是                       |
 | --output | -o   | \<DIRECTORY\>         | 指定的子集输出路径                   | 否，默认值`./out`        |
@@ -78,6 +79,27 @@
 | --output | -o   | \<DIRECTORY\> | 指定的子集输出路径               | 否，默认值`./out` |
 | --work   | -w   | \<DIRECTORY\> | 指定的工作临时文件夹             | 否，默认值`./out` |
 | --quiet  | -q   | 无            | 启用时，程序静默运行，不输出信息 |                   |
+
+### 配置文件
+
+配置文件为`json`格式，需求`names`和`layers`两个数组条目，与`split`子命令中的同名参数等效。
+
+典型的配置文件内容如下：
+
+```
+{
+    "names": [
+        "os", 
+        "lib", 
+        "app"
+    ], 
+    "layers": [
+        1, 
+        -1, 
+        1
+    ]
+}
+```
 
 ### 情景示例
 
