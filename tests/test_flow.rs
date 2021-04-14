@@ -6,11 +6,13 @@ use std::collections::HashMap;
 use ctor::ctor;
 use lazy_static::lazy_static;
 
-use layer_sword::inspector::inspect;
 use layer_sword::util::{init_path, extract_tar, fetch_file_sha256};
-use layer_sword::split::split_layer;
-use layer_sword::merge::merge_layer;
+use layer_sword::dominator::base::BaseDominator;
+use layer_sword::inspector::base::BaseInspector;
 use layer_sword::errors::LayerSwordError;
+use layer_sword::inspector::Inspect;
+use layer_sword::split::Split;
+use layer_sword::merge::Merge;
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
 
@@ -62,7 +64,9 @@ fn test_inspect() -> Result<()> {
     init_path(work_path, out_path);
     let merge_path = Path::new("tests/test_inspect/merge");
     extract_tar(tar_path, merge_path);
-    inspect(merge_path)?;
+
+    let inspector = BaseInspector {};
+    inspector.inspect(merge_path)?;
 
     Ok(())
 }
@@ -83,7 +87,17 @@ fn test_split_layer() -> Result<()> {
     split_map.insert(format!("lib"), 3);
     split_map.insert(format!("app"), 1);
     let compress_level: u8 = 6;
-    split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.split_layer(
+        Box::new(inspector),
+        tar_path,
+        split_names,
+        split_map,
+        work_path,
+        out_path,
+        compress_level)?;
 
     let os_path = Path::new("tests/out_split_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
@@ -123,7 +137,17 @@ fn test_deduction() -> Result<()> {
     split_map.insert(format!("lib"), -1);
     split_map.insert(format!("app"), 1);
     let compress_level: u8 = 6;
-    split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.split_layer(
+        Box::new(inspector),
+        tar_path,
+        split_names,
+        split_map,
+        work_path,
+        out_path,
+        compress_level)?;
 
     let os_path = Path::new("tests/out_deduction/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
@@ -164,7 +188,17 @@ fn test_split_four_layer() -> Result<()> {
     split_map.insert(format!("lib"), 2);
     split_map.insert(format!("app"), 1);
     let compress_level: u8 = 6;
-    split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.split_layer(
+        Box::new(inspector),
+        tar_path,
+        split_names,
+        split_map,
+        work_path,
+        out_path,
+        compress_level)?;
 
     let os_path = Path::new("tests/out_split_four_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
@@ -207,7 +241,17 @@ fn test_split_two_layer() -> Result<()> {
     split_map.insert(format!("os"), 1);
     split_map.insert(format!("lib"), -1);
     let compress_level: u8 = 6;
-    split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.split_layer(
+        Box::new(inspector),
+        tar_path,
+        split_names,
+        split_map,
+        work_path,
+        out_path,
+        compress_level)?;
 
     let os_path = Path::new("tests/out_split_two_layer/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);
@@ -231,7 +275,10 @@ fn test_merge() -> Result<()> {
     let work_path = Path::new("tests/test_merge");
     let out_path = Path::new("tests/out_merge");
     init_path(work_path, out_path);
-    merge_layer(target_path, work_path, out_path)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.merge_layer(Box::new(inspector), target_path, work_path, out_path)?;
 
     let tar_path = Path::new("tests/out_merge/merge.tar");
     let tar_hash = fetch_file_sha256(tar_path);
@@ -257,7 +304,17 @@ fn test_compress_best() -> Result<()> {
     split_map.insert(format!("lib"), -1);
     split_map.insert(format!("app"), 1);
     let compress_level: u8 = 9;
-    split_layer(tar_path, split_names, split_map, work_path, out_path, compress_level)?;
+
+    let inspector = BaseInspector {};
+    let dominator = BaseDominator {};
+    dominator.split_layer(
+        Box::new(inspector),
+        tar_path,
+        split_names,
+        split_map,
+        work_path,
+        out_path,
+        compress_level)?;
 
     let os_path = Path::new("tests/out_compress_best/os.tar.gz");
     let os_hash = fetch_file_sha256(os_path);

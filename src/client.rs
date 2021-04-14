@@ -5,8 +5,11 @@ use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
 use log::{error, LevelFilter};
 
-use crate::split::split_layer;
-use crate::merge::merge_layer;
+
+use crate::inspector::base::BaseInspector;
+use crate::inspector::Inspect;
+use crate::dominator::base::BaseDominator;
+use crate::merge::Merge;
 use crate::util::{load_config, init_path};
 use crate::errors::{TerminalError, LayerSwordError};
 
@@ -167,6 +170,12 @@ fn prepare_splits_info(names: Vec<String>, layers: Vec<String>)
     Ok((split_names, split_map))
 }
 
+
+fn pick_dominator_and_inspector()
+    -> (Box<dyn Merge>, Box<dyn Inspect>) {
+    (Box::new(BaseDominator {}), Box::new(BaseInspector {}))
+}
+
 pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
     let result: Result<ArgMatches, TerminalError> = App::new("LayerSword")
         .version("0.1.0")
@@ -286,6 +295,8 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
     });
     let matches = result?;
 
+    let (dominator, inspector) = pick_dominator_and_inspector();
+
     if let Some(sub) = matches.subcommand_matches("split") {
         let (target_path, work_path, out_path) =
             parse_path(&sub, "split")?;
@@ -304,30 +315,32 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         } else if level_from_conv.is_ok() {
             level = level_from_conv.unwrap();
         }
-
+        let split_names: Vec<String>;
+        let split_map: HashMap<String, i16>;
         if sub.is_present("config") {
             parse_and_set_logger(&sub);
-            let (split_names, split_map) = parse_cfg_from_file(sub)?;
-            init_path(work_path, out_path);
-            if let Err(e) = split_layer(target_path, split_names, split_map,
-                                        work_path, out_path, level) {
-                error!("{}", e);
-                return Err(e.into());
-            }
+            (split_names, split_map) = parse_cfg_from_file(sub)?;
         } else if sub.is_present("names") & sub.is_present("layers") {
             parse_and_set_logger(&sub);
-            let (split_names, split_map) = parse_cfg_from_cli(sub)?;
-            init_path(work_path, out_path);
-            if let Err(e) = split_layer(target_path, split_names, split_map,
-                                        work_path, out_path, level) {
-                error!("{}", e);
-                return Err(e.into());
-            }
+            (split_names, split_map) = parse_cfg_from_cli(sub)?;
         } else {
             return Err(TerminalError::WithoutArgError {
                 arg: format!("(names && layers) || config"),
                 msg: matches.usage().to_string(),
             }.into());
+        }
+        init_path(work_path, out_path);
+
+        if let Err(e) = dominator.split_layer(
+            inspector,
+            target_path,
+            split_names,
+            split_map,
+            work_path,
+            out_path,
+            level) {
+            error!("{}", e);
+            return Err(e.into());
         }
     } else if let Some(sub) = matches.subcommand_matches("merge") {
         parse_and_set_logger(&sub);
@@ -336,7 +349,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         init_path(work_path, out_path);
 
 
-        if let Err(e) = merge_layer(target_path, work_path, out_path) {
+        if let Err(e) = dominator.merge_layer(inspector, target_path, work_path, out_path) {
             error!("{}", e);
             return Err(e.into());
         }

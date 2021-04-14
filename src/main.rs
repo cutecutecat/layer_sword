@@ -1,5 +1,9 @@
+#![feature(associated_type_defaults)]
+#![feature(destructuring_assignment)]
+
 mod util;
 mod errors;
+mod dominator;
 mod inspector;
 mod split;
 mod merge;

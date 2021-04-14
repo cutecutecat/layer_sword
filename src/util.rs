@@ -213,3 +213,13 @@ pub fn get_stack_id(last_stack_id: &String, parent_id: &String) -> String {
     raw_id.push_str(&parent_id);
     fetch_string_sha256(&raw_id)
 }
+
+#[macro_export]
+macro_rules! path_to_string {
+    ($p:expr) => {
+        $p.into_os_string()
+         .into_string()
+         .map_err(|_| InternalError::ConvertError)
+         .unwrap()
+        };
+    }
