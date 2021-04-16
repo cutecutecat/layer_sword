@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use layer_sword::util::{init_path, extract_tar, fetch_file_sha256};
 use layer_sword::dominator::base::BaseDominator;
 use layer_sword::inspector::base::BaseInspector;
-use layer_sword::errors::LayerSwordError;
+use layer_sword::errors::{LayerSwordError, raise};
 use layer_sword::inspector::Inspect;
 use layer_sword::split::Split;
 use layer_sword::merge::Merge;
@@ -35,9 +35,9 @@ fn before() {
     for dir in DIR_VEC.clone() {
         let dir_path = Path::new(&dir);
         if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap();
+            fs::remove_dir_all(dir_path).unwrap_or_else(|_| {});
         }
-        fs::create_dir(dir_path).unwrap();
+        raise(fs::create_dir(dir_path));
     }
 }
 

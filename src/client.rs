@@ -5,13 +5,12 @@ use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
 use log::{error, LevelFilter};
 
-
 use crate::inspector::base::BaseInspector;
 use crate::inspector::Inspect;
 use crate::dominator::base::BaseDominator;
 use crate::merge::Merge;
 use crate::util::{load_config, init_path};
-use crate::errors::{TerminalError, LayerSwordError};
+use crate::errors::{TerminalError, LayerSwordError, InternalError, raise};
 
 fn parse_and_set_logger(sub: &ArgMatches) {
     if sub.is_present("quiet") {
@@ -147,10 +146,10 @@ fn prepare_splits_info(names: Vec<String>, layers: Vec<String>)
     let mut split_map: HashMap<String, i16> = HashMap::new();
     let mut deduct_split = String::new();
     for (i, num) in layers.iter().enumerate() {
-        let name = split_names
+        let name = raise(split_names
             .get(i)
-            .unwrap();
-        let value = num.parse::<i16>().unwrap();
+            .ok_or_else(|| InternalError::KeyError { key: i.to_string() }));
+        let value = raise(num.parse::<i16>());
         if deduct_split.len() == 0 && value == -1 {
             deduct_split = name.clone();
         } else if deduct_split.len() > 0 && value == -1 {
@@ -177,7 +176,7 @@ fn pick_dominator_and_inspector()
 }
 
 pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
-    let result: Result<ArgMatches, TerminalError> = App::new("LayerSword")
+    let result: Result<ArgMatches, clap::Error> = App::new("LayerSword")
         .version("0.1.0")
         .author("cutecutecat")
         .about("Split or merge image files")
@@ -288,12 +287,22 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .short("q")
                 .long("quiet")
                 .help("Not print anything to terminal"))
-        ).get_matches_from_safe(args).map_err(|e: clap::Error| {
-        env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
-        error!("{}", e);
-        e.into()
-    });
-    let matches = result?;
+        ).get_matches_from_safe(args);
+    let map_result: Result<ArgMatches, TerminalError>;
+    if result.is_err()
+        && result.as_ref().expect_err("An impossible error occurred").kind
+        == clap::ErrorKind::HelpDisplayed {
+        let e = result.as_ref().expect_err("An impossible error occurred");
+        print!("{}", e);
+        return Ok(());
+    } else {
+        map_result = result.map_err(|e: clap::Error| {
+            env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
+            error!("{}", e);
+            e.into()
+        });
+    }
+    let matches = map_result?;
 
     let (dominator, inspector) = pick_dominator_and_inspector();
 
@@ -311,9 +320,9 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         let level_from_conv = level_str.parse::<u8>();
         let mut level: u8 = 6;
         if level_from_map.is_some() {
-            level = *level_from_map.unwrap();
+            level = *raise(level_from_map.ok_or_else(|| InternalError::ConvertError));
         } else if level_from_conv.is_ok() {
-            level = level_from_conv.unwrap();
+            level = raise(level_from_conv);
         }
         let split_names: Vec<String>;
         let split_map: HashMap<String, i16>;
@@ -347,7 +356,6 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         let (target_path, work_path, out_path) =
             parse_path(&sub, "merge")?;
         init_path(work_path, out_path);
-
 
         if let Err(e) = dominator.merge_layer(inspector, target_path, work_path, out_path) {
             error!("{}", e);

@@ -7,8 +7,9 @@ use regex::Regex;
 use json::JsonValue;
 
 use crate::inspector::Inspect;
+use crate::os_str_to_string;
 use crate::util::{fetch_file_sha256, load_config};
-use crate::errors::{FileCheckError, InternalError};
+use crate::errors::{FileCheckError, InternalError, raise};
 
 pub struct BaseInspector {}
 
@@ -22,18 +23,17 @@ impl Inspect for BaseInspector {
         let mut manifest_path: PathBuf = PathBuf::new();
         let mut repositories_path: PathBuf = PathBuf::new();
 
-        let expr_config = Regex::new(r#"^[a-z0-9]{64}.json$"#).unwrap();
-        let expr_layer_and_config = Regex::new(r#"^[a-z0-9]{64}"#).unwrap();
+        let expr_config = raise(Regex::new(r#"^[a-z0-9]{64}.json$"#));
+        let expr_layer_and_config = raise(Regex::new(r#"^[a-z0-9]{64}"#));
 
-        let all_extracted_paths = read_dir(extract_path).unwrap();
+        let all_extracted_paths = raise(read_dir(extract_path));
         let mut now_path: String;
         for entry in all_extracted_paths {
-            now_path = entry
-                .unwrap()
+            let entry = raise(entry);
+            now_path = raise(entry
                 .file_name()
                 .into_string()
-                .map_err(|_| InternalError::ConvertError)
-                .unwrap();
+                .map_err(|_| InternalError::ConvertError));
             // 查找manifest
             if manifest_path.components().next().is_none() && now_path == "manifest.json" {
                 manifest_path.push(extract_path);
@@ -82,18 +82,14 @@ impl Inspect for BaseInspector {
         let mut layer_tar_hash: HashSet<String> = HashSet::new();
 
         // 验证config.json自身哈希
-        let config_path = Path::new(file_map
+        let config_path: &Path = raise(file_map
             .get("config_path")
-            .ok_or_else(|| InternalError::KeyError { key: format!("config_path") })
-            .unwrap());
-        let config_filestem = config_path
+            .ok_or_else(|| InternalError::KeyError { key: format!("config_path") }))
+            .as_path();
+        let config_filestem = raise(config_path
             .file_stem()
-            .ok_or_else(|| InternalError::FilePathError { path: config_path.to_path_buf() })
-            .unwrap()
-            .to_os_string()
-            .into_string()
-            .map_err(|_| InternalError::ConvertError)
-            .unwrap();
+            .ok_or_else(|| InternalError::FilePathError { path: config_path.to_path_buf() }));
+        let config_filestem = os_str_to_string!(config_filestem);
         let hash = fetch_file_sha256(config_path);
         if config_filestem != hash {
             return Err(FileCheckError::BadDockerFileError {
@@ -147,16 +143,15 @@ impl Inspect for BaseInspector {
         for layer in layer_hash_set {
             let mut layer_dir_path = extract_path.clone().to_path_buf();
             layer_dir_path.push(layer.clone());
-            let layer_paths = read_dir(&layer_dir_path).unwrap();
+            let layer_paths = raise(read_dir(&layer_dir_path));
             let mut has_layer = false;
             let mut has_json = false;
             for entry in layer_paths {
-                let entry = entry.unwrap();
+                let entry = raise(entry);
                 let file_name = entry.file_name();
-                let now_path = file_name
+                let now_path = raise(file_name
                     .to_str()
-                    .ok_or_else(|| InternalError::ConvertError)
-                    .unwrap();
+                    .ok_or_else(|| InternalError::ConvertError));
                 if now_path != "json" && now_path != "layer.tar" && now_path != "VERSION" {
                     return Err(FileCheckError::BadDockerFileError {
                         msg: format!("unrecognized file '{}' inside layer '{:?}'",
@@ -216,10 +211,10 @@ impl Inspect for BaseInspector {
 
     fn inspect_manifest(&self, extract_path: &Path, file_map: &HashMap<String, PathBuf, RandomState>, layer_hash_set: &HashSet<String, RandomState>) -> Result<Vec<PathBuf>, FileCheckError> {
         // 验证manefist.json内描述文件存在
-        let manifest_path = file_map
-            .get("manifest_path")
-            .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") })
-            .unwrap();
+        let manifest_path = raise(
+            file_map
+                .get("manifest_path")
+                .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") }));
         let config = load_config(manifest_path)
             .map_err(|_| FileCheckError::BadDockerFileError {
                 msg: format!("manifest file parse failed")
@@ -273,16 +268,16 @@ impl Inspect for BaseInspector {
                     })
                 }
             }?;
-            let layer_path = layer_parent_path
-                .parent()
-                .ok_or_else(|| InternalError::FilePathError {
-                    path: layer_parent_path.to_path_buf()
-                })
-                .unwrap();
-            if !layer_hash_set.contains(layer_path
-                .to_str()
-                .ok_or_else(|| InternalError::ConvertError)
-                .unwrap()) {
+            let layer_path = raise(
+                layer_parent_path
+                    .parent()
+                    .ok_or_else(|| InternalError::FilePathError {
+                        path: layer_parent_path.to_path_buf()
+                    }));
+            if !layer_hash_set.contains(
+                raise(layer_path
+                    .to_str()
+                    .ok_or_else(|| InternalError::ConvertError))) {
                 return Err(FileCheckError::BadDockerFileError {
                     msg: format!("layer inside manifest doesn't exist")
                 });

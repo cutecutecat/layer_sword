@@ -22,8 +22,8 @@ pub trait Inspect {
                         layer_hash_set: &HashSet<String>)
                         -> Result<Vec<PathBuf>, FileCheckError>;
     fn inspect(&self, extract_path: &Path)
-                  -> Result<(HashMap<String, PathBuf>, Vec<PathBuf>),
-                      FileCheckError> {
+               -> Result<(HashMap<String, PathBuf>, Vec<PathBuf>),
+                   FileCheckError> {
         log::info!("Inspecting route of required files");
         let (file_map, layer_hash_set) =
             self.inspect_route(extract_path)?;

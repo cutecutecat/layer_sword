@@ -7,7 +7,7 @@ use crate::split::Split;
 use crate::merge::Merge;
 use crate::dominator::Config;
 use crate::util::{fetch_file_sha256, dump_config, get_stack_id};
-use crate::errors::{FileCheckError, InternalError};
+use crate::errors::{FileCheckError, InternalError, raise};
 
 #[derive(Debug)]
 pub struct BaseConfig {
@@ -30,14 +30,12 @@ impl Config for BaseConfig {
     }
 
     fn to_json(&self) -> JsonValue {
-        let parent_id = self.hash_vec
+        let parent_id = raise(self.hash_vec
             .get("parent_id")
-            .ok_or_else(|| InternalError::KeyError { key: "parent_id".into() })
-            .unwrap();
-        let stack_id = self.hash_vec
+            .ok_or_else(|| InternalError::KeyError { key: "parent_id".into() }));
+        let stack_id = raise(self.hash_vec
             .get("stack_id")
-            .ok_or_else(|| InternalError::KeyError { key: "stack_id".into() })
-            .unwrap();
+            .ok_or_else(|| InternalError::KeyError { key: "stack_id".into() }));
         let split_data: JsonValue = object! {
                 parent_id: parent_id.clone(),
                 stack_id: stack_id.clone(),
@@ -49,10 +47,9 @@ impl Config for BaseConfig {
     fn load_json(&mut self, j: JsonValue) {
         self.hash_vec.insert("parent_id".into(), j["parent_id"].to_string());
         self.hash_vec.insert("stack_id".into(), j["stack_id"].to_string());
-        self.index = j["index"]
+        self.index = raise(j["index"]
             .as_usize()
-            .ok_or_else(|| InternalError::ConvertError)
-            .unwrap();
+            .ok_or_else(|| InternalError::ConvertError));
     }
 
     fn set_path(&mut self,

@@ -6,7 +6,7 @@ use ctor::ctor;
 use lazy_static::lazy_static;
 
 use layer_sword::client::cli_main;
-use layer_sword::errors::{LayerSwordError};
+use layer_sword::errors::{LayerSwordError, raise};
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
 
@@ -27,9 +27,9 @@ fn before() {
     for dir_str in DIR_VEC.clone() {
         let dir_path = Path::new(&dir_str);
         if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap();
+            fs::remove_dir_all(dir_path).unwrap_or_else(|_| {});
         }
-        fs::create_dir(dir_path).unwrap();
+        raise(fs::create_dir(dir_path));
     }
 }
 

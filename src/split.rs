@@ -3,9 +3,11 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
 use fs_extra::{dir, file};
+
 use crate::inspector::Inspect;
+use crate::os_str_to_string;
 use crate::util::{compress_tar, compress_tar_gz, extract_tar};
-use crate::errors::{FileCheckError, InternalError};
+use crate::errors::{FileCheckError, InternalError, raise, raise_err};
 
 pub trait Split {
     fn deduct_split_map(&self,
@@ -17,24 +19,24 @@ pub trait Split {
         let mut layer_num: i16 = 0;
         let mut addup_flag: String = String::new();
         for name in split_names {
-            let split_num: &i16 = deduct_map
+            let split_num: &i16 = raise(deduct_map
                 .get(name)
-                .ok_or_else(|| InternalError::KeyError { key: name.clone() })
-                .unwrap();
+                .ok_or_else(|| InternalError::KeyError { key: name.clone() }));
             if *split_num == -1 {
                 if addup_flag == "" {
                     addup_flag = name.clone();
                 } else {
-                    return Err(InternalError::ImpossibleError {
+                    raise_err(InternalError::ImpossibleError {
                         msg: format!("more than 1 split of -1 layers: '{}' and '{}'",
                                      addup_flag, name),
-                    }).unwrap();
+                    });
                 }
             } else if *split_num < -1
             {
-                return Err(InternalError::ImpossibleError {
-                    msg: format!("split number cannot be positive or -1, actuall '{:?}'", split_num),
-                }).unwrap();
+                raise_err(InternalError::ImpossibleError {
+                    msg: format!("split number cannot be positive or -1, actuall '{:?}'",
+                                 split_num),
+                });
             } else {
                 layer_num += *split_num as i16;
             }
@@ -75,20 +77,18 @@ pub trait Split {
         for name in split_names {
             let mut split_pathbuf = top_pathbuf.clone();
             split_pathbuf.push(name.clone());
-            fs::create_dir(&split_pathbuf).unwrap();
+            raise(fs::create_dir(&split_pathbuf));
 
             for id in 0..split_map[name] {
-                let src_path = layer_dir_set
+                let src_path = raise(layer_dir_set
                     .get((id_from + id) as usize)
-                    .ok_or_else(|| InternalError::KeyError { key: (id_from + id).to_string() })
-                    .unwrap();
-                let item_name = src_path
+                    .ok_or_else(|| InternalError::KeyError { key: (id_from + id).to_string() }));
+                let item_name = raise(src_path
                     .file_name()
-                    .ok_or_else(|| InternalError::FilePathError { path: src_path.clone() })
-                    .unwrap();
+                    .ok_or_else(|| InternalError::FilePathError { path: src_path.clone() }));
                 let mut dst_path = split_pathbuf.clone();
                 dst_path.push(item_name);
-                dir::copy(src_path, dst_path, &copy_options_dir).unwrap();
+                raise(dir::copy(src_path, dst_path, &copy_options_dir));
             }
             id_from += split_map[name];
         }
@@ -100,23 +100,18 @@ pub trait Split {
                         top_pathbuf: &PathBuf) {
         let mut copy_options_file = file::CopyOptions::new();
         copy_options_file.overwrite = true;
-        let top_layer = split_names
+        let top_layer = raise(split_names
             .get(split_names.len() - 1)
-            .ok_or_else(|| InternalError::KeyError { key: (split_names.len() - 1).to_string() })
-            .unwrap();
+            .ok_or_else(|| InternalError::KeyError { key: (split_names.len() - 1).to_string() }));
         for (_, src_path) in file_map {
-            let filename = src_path
+            let filename = raise(src_path
                 .file_name()
-                .ok_or_else(|| InternalError::FilePathError { path: src_path.clone() })
-                .unwrap()
-                .to_os_string()
-                .into_string()
-                .map_err(|_| InternalError::ConvertError)
-                .unwrap();
+                .ok_or_else(|| InternalError::FilePathError { path: src_path.clone() }));
+            let filename = os_str_to_string!(filename);
             let mut dst_pathbuf = top_pathbuf.clone();
             dst_pathbuf.push(top_layer);
             dst_pathbuf.push(filename);
-            file::copy(&src_path, &dst_pathbuf, &copy_options_file).unwrap();
+            raise(file::copy(&src_path, &dst_pathbuf, &copy_options_file));
         }
     }
 
@@ -130,7 +125,7 @@ pub trait Split {
         let mut compress_path = split_path.clone();
         compress_path.push(name);
         compress_tar(&tar_path, &compress_path)?;
-        fs::remove_dir_all(compress_path).unwrap();
+        raise(fs::remove_dir_all(compress_path));
         Ok(tar_path)
     }
 
@@ -178,7 +173,7 @@ pub trait Split {
         let mut split_path = work_path.to_path_buf();
         split_path.push("split");
         log::info!("Extracting tar file of dock image at {}",
-                   tar_path.to_str().ok_or_else(|| InternalError::ConvertError).unwrap());
+                   raise(tar_path.to_str().ok_or_else(|| InternalError::ConvertError)));
         if tar_path.extension().unwrap_or_default() != "tar" {
             return Err(FileCheckError::FileExtensionError {
                 extension: format!("tar"),
@@ -200,14 +195,14 @@ pub trait Split {
         log::info!("Copying files inside splits into dock image");
         self.copy_split_files(&split_names, file_map, &split_path);
         log::info!("Packing items into tar file under {}",
-                   &out_path.to_str().ok_or_else(|| InternalError::ConvertError).unwrap());
+                   raise(out_path.to_str().ok_or_else(|| InternalError::ConvertError)));
         let tar_path_vec = self.pack_all_tar(&split_names, split_path)?;
         log::info!("Packing items into gz file under {} at compress_level {}",
-                   &out_path.to_str().ok_or_else(|| InternalError::ConvertError).unwrap(),
+                   raise(out_path.to_str().ok_or_else(|| InternalError::ConvertError)),
                    compress_level);
         self.pack_all_gz(&out_path.to_path_buf(), tar_path_vec, compress_level);
         log::info!("Clean items inside work path");
-        fs::remove_dir_all(work_path).unwrap();
+        raise(fs::remove_dir_all(work_path));
         Ok(())
     }
 
