@@ -1,39 +1,20 @@
 #[cfg(test)]
-use std::path::Path;
-use std::fs;
+mod common;
 
-use ctor::ctor;
-use lazy_static::lazy_static;
+use std::path::Path;
 
 use layer_sword::client::cli_main;
 use layer_sword::util::fetch_file_sha256;
-use layer_sword::errors::{LayerSwordError, raise};
+use layer_sword::errors::LayerSwordError;
+
+use common::{testcase_initial, testcase_destroy};
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
 
-lazy_static! {
-    static ref DIR_VEC: Vec<String> = vec![
-        "tests/out_split_basic", "tests/work_split_basic",
-        "tests/out_split_negatives", "tests/work_split_negatives",
-        "tests/out_split_config", "tests/work_split_config",
-        "tests/out_merge_basic", "tests/work_merge_basic"
-    ].iter().map(|s| s.to_string()).collect();
-}
-
-#[ctor]
-fn before() {
-    env_logger::builder().is_test(true).try_init().unwrap_or_else(|_| {});
-    for dir_str in DIR_VEC.clone() {
-        let dir_path = Path::new(&dir_str);
-        if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap_or_else(|_| {});
-        }
-        raise(fs::create_dir(dir_path));
-    }
-}
-
 #[test]
 fn test_split_basic() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_basic", "tests/out_split_basic"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -61,19 +42,23 @@ fn test_split_basic() -> Result<()> {
     let app_right =
         format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
+
+    testcase_destroy(vec!["tests/work_split_basic", "tests/out_split_basic"]);
     Ok(())
 }
 
 #[test]
 fn test_split_negatives() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_negatives", "tests/out_split_negatives"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
         "-t", "tests/data/base.tar",
         "-l", "1,3,-1",
+        "-w", "tests/work_split_negatives",
         "-o", "tests/out_split_negatives",
-        "-n", "os,lib,app",
-        "-w", "tests/work_split_negatives"].iter().map(|s| s.to_string()).collect();
+        "-n", "os,lib,app"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let os_path = Path::new("tests/out_split_negatives/os.tar.gz");
@@ -93,18 +78,22 @@ fn test_split_negatives() -> Result<()> {
     let app_right =
         format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
+
+    testcase_destroy(vec!["tests/work_split_negatives", "tests/out_split_negatives"]);
     Ok(())
 }
 
 #[test]
 fn test_split_config() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_config", "tests/out_split_config"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
         "-t", "tests/data/base.tar",
         "-c", "tests/data/config.json",
-        "-o", "tests/out_split_config",
-        "-w", "tests/work_split_config"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_split_config",
+        "-o", "tests/out_split_config"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let os_path = Path::new("tests/out_split_config/os.tar.gz");
@@ -124,17 +113,21 @@ fn test_split_config() -> Result<()> {
     let app_right =
         format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
+
+    testcase_destroy(vec!["tests/work_split_config", "tests/out_split_config"]);
     Ok(())
 }
 
 #[test]
 fn test_merge_basic() -> Result<()> {
+    testcase_initial(vec!["tests/work_merge_basic", "tests/out_merge_basic"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "merge",
         "-t", "tests/data/splits_base",
-        "-o", "tests/out_merge_basic",
-        "-w", "tests/work_merge_basic"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_merge_basic",
+        "-o", "tests/out_merge_basic"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let tar_path = Path::new("tests/out_merge_basic/merge.tar");
@@ -142,5 +135,7 @@ fn test_merge_basic() -> Result<()> {
     let tar_right =
         format!("a82e3d4bcf3194ec7841f6f1f2b4ce34d1107c23ef4e42d4e5073224858cc56b");
     assert_eq!(tar_hash, tar_right);
+
+    testcase_destroy(vec!["tests/work_merge_basic", "tests/out_merge_basic"]);
     Ok(())
 }

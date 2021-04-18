@@ -1,37 +1,12 @@
 #[cfg(test)]
-use std::path::Path;
-use std::fs;
-
-use ctor::ctor;
-use lazy_static::lazy_static;
+mod common;
 
 use layer_sword::client::cli_main;
-use layer_sword::errors::{LayerSwordError, raise};
+use layer_sword::errors::LayerSwordError;
+
+use common::{testcase_initial, testcase_destroy};
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
-
-lazy_static! {
-    static ref DIR_VEC: Vec<String> = vec![
-    "tests/out_split_conflict", "tests/work_split_conflict",
-    "tests/out_split_no_info", "tests/out_split_no_info",
-    "tests/out_split_no_target", "tests/work_split_no_target",
-    "tests/out_merge_no_target", "tests/work_merge_no_target",
-    "tests/out_split_bad_extension", "tests/work_split_bad_extension",
-    "tests/out_split_bad_info", "tests/work_split_bad_info"
-    ].iter().map(|s| s.to_string()).collect();
-}
-
-#[ctor]
-fn before() {
-    env_logger::builder().is_test(true).try_init().unwrap_or_else(|_| {});
-    for dir_str in DIR_VEC.clone() {
-        let dir_path = Path::new(&dir_str);
-        if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap_or_else(|_| {});
-        }
-        raise(fs::create_dir(dir_path));
-    }
-}
 
 #[test]
 fn test_blank() -> Result<()> {
@@ -52,6 +27,8 @@ fn test_blank() -> Result<()> {
 
 #[test]
 fn test_split_conflict() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_conflict", "tests/out_split_conflict"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -71,11 +48,15 @@ fn test_split_conflict() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_split_conflict", "tests/out_split_conflict"]);
     Ok(())
 }
 
 #[test]
 fn test_split_no_info() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_no_info", "tests/out_split_no_info"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -92,11 +73,15 @@ fn test_split_no_info() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_split_no_info", "tests/out_split_no_info"]);
     Ok(())
 }
 
 #[test]
 fn test_split_no_target() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_no_target", "tests/out_split_no_target"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -113,16 +98,20 @@ fn test_split_no_target() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_split_no_target", "tests/out_split_no_target"]);
     Ok(())
 }
 
 #[test]
 fn test_merge_no_target() -> Result<()> {
+    testcase_initial(vec!["tests/work_merge_no_target", "tests/out_merge_no_target"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "merge",
-        "-o", "tests/out_merge_no_target",
-        "-w", "tests/work_merge_no_target"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_merge_no_target",
+        "-o", "tests/out_merge_no_target"].iter().map(|s| s.to_string()).collect();
     let result = cli_main(args);
     assert!(result.is_err());
     let error_chk = result.or_else(|e| match e {
@@ -133,11 +122,15 @@ fn test_merge_no_target() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_merge_no_target", "tests/out_merge_no_target"]);
     Ok(())
 }
 
 #[test]
 fn test_split_bad_extension() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_bad_extension", "tests/out_split_bad_extension"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -155,11 +148,15 @@ fn test_split_bad_extension() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_split_bad_extension", "tests/out_split_bad_extension"]);
     Ok(())
 }
 
 #[test]
 fn test_split_bad_info() -> Result<()> {
+    testcase_initial(vec!["tests/work_split_bad_info", "tests/out_split_bad_info"]);
+
     let args: Vec<String> = vec![
         "target/release/layer_sword.exe",
         "split",
@@ -178,5 +175,7 @@ fn test_split_bad_info() -> Result<()> {
         _ => Ok(())
     });
     assert!(error_chk.is_err());
+
+    testcase_destroy(vec!["tests/work_split_bad_info", "tests/out_split_bad_info"]);
     Ok(())
 }

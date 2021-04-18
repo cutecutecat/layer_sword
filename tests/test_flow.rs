@@ -1,56 +1,35 @@
 #[cfg(test)]
-use std::path::Path;
-use std::fs;
-use std::collections::HashMap;
+mod common;
 
-use ctor::ctor;
-use lazy_static::lazy_static;
+use std::path::Path;
+use std::collections::HashMap;
 
 use layer_sword::util::{init_path, extract_tar, fetch_file_sha256};
 use layer_sword::dominator::base::BaseDominator;
 use layer_sword::inspector::base::BaseInspector;
-use layer_sword::errors::{LayerSwordError, raise};
+use layer_sword::errors::LayerSwordError;
 use layer_sword::inspector::Inspect;
 use layer_sword::split::Split;
 use layer_sword::merge::Merge;
 
+use common::{testcase_initial, testcase_destroy};
+
 type Result<T> = core::result::Result<T, LayerSwordError>;
-
-lazy_static! {
-    static ref DIR_VEC: Vec<String> = vec![
-        "tests/out_init_path", "tests/work_init_path",
-        "tests/out_inspect", "tests/work_inspect",
-        "tests/out_split_layer", "tests/work_split_layer",
-        "tests/out_deduction", "tests/work_deduction",
-        "tests/out_split_four_layer", "tests/work_split_four_layer",
-        "tests/out_split_two_layer", "tests/work_split_two_layer",
-        "tests/out_merge", "tests/work_merge",
-        "tests/out_compress_best","tests/work_compress_best"
-    ].iter().map(|s| s.to_string()).collect();
-}
-
-#[ctor]
-fn before() {
-    env_logger::builder().is_test(true).try_init().unwrap_or_else(|_| {});
-    for dir in DIR_VEC.clone() {
-        let dir_path = Path::new(&dir);
-        if dir_path.exists() {
-            fs::remove_dir_all(dir_path).unwrap_or_else(|_| {});
-        }
-        raise(fs::create_dir(dir_path));
-    }
-}
 
 #[test]
 fn test_init_path() -> Result<()> {
     log::info!("Test for 'init_path' function.");
     let work_path = Path::new("tests/work_init_path");
     let out_path = Path::new("tests/out_init_path");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let split_path = Path::new("tests/work_init_path/split");
     let merge_path = Path::new("tests/work_init_path/merge");
     assert_eq!(split_path.exists(), true);
     assert_eq!(merge_path.exists(), true);
+
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -60,6 +39,8 @@ fn test_inspect() -> Result<()> {
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_inspect");
     let out_path = Path::new("tests/out_inspect");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let merge_path = Path::new("tests/work_inspect/merge");
     extract_tar(tar_path, merge_path);
@@ -67,6 +48,7 @@ fn test_inspect() -> Result<()> {
     let inspector = BaseInspector {};
     inspector.inspect(merge_path)?;
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -76,6 +58,8 @@ fn test_split_layer() -> Result<()> {
     let out_path = Path::new("tests/out_split_layer");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_split_layer");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -116,6 +100,7 @@ fn test_split_layer() -> Result<()> {
         format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -126,6 +111,8 @@ fn test_deduction() -> Result<()> {
     let out_path = Path::new("tests/out_deduction");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_deduction");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -166,6 +153,7 @@ fn test_deduction() -> Result<()> {
         format!("6f254b36aca46cd037ca455f0843efba982e7ed338d88c04106096a2f3afd6cc");
     assert_eq!(app_hash, app_right);
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -175,6 +163,8 @@ fn test_split_four_layer() -> Result<()> {
     let out_path = Path::new("tests/out_split_four_layer");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_split_four_layer");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -223,6 +213,7 @@ fn test_split_four_layer() -> Result<()> {
         format!("8e654b72a036bbe9c4557f35c45f605830bff5249c9e36fbef5d61542de9605d");
     assert_eq!(app_hash, app_right);
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -232,6 +223,8 @@ fn test_split_two_layer() -> Result<()> {
     let out_path = Path::new("tests/out_split_two_layer");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_split_two_layer");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -264,6 +257,7 @@ fn test_split_two_layer() -> Result<()> {
         format!("ec151b9edfdd803fe50365e3415248ef6648b89aed94933a26e8f51fdd9e1569");
     assert_eq!(lib_hash, lib_right);
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -273,8 +267,9 @@ fn test_merge() -> Result<()> {
     let target_path = Path::new("tests/data/splits_base");
     let work_path = Path::new("tests/work_merge");
     let out_path = Path::new("tests/out_merge");
-    init_path(work_path, out_path);
+    testcase_initial(vec![work_path, out_path]);
 
+    init_path(work_path, out_path);
     let inspector = BaseInspector {};
     let dominator = BaseDominator {};
     dominator.merge_layer(Box::new(inspector), target_path, work_path, out_path)?;
@@ -284,6 +279,8 @@ fn test_merge() -> Result<()> {
     let tar_right =
         format!("a82e3d4bcf3194ec7841f6f1f2b4ce34d1107c23ef4e42d4e5073224858cc56b");
     assert_eq!(tar_hash, tar_right);
+
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }
 
@@ -293,6 +290,8 @@ fn test_compress_best() -> Result<()> {
     let out_path = Path::new("tests/out_compress_best");
     let tar_path = Path::new("tests/data/base.tar");
     let work_path = Path::new("tests/work_compress_best");
+    testcase_initial(vec![work_path, out_path]);
+
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -333,5 +332,6 @@ fn test_compress_best() -> Result<()> {
         format!("25b75bc8a75d4a2be082d9e5a2c6dd1e86641fc22e39158aedcf911d62c3296e");
     assert_eq!(app_hash, app_right);
 
+    testcase_destroy(vec![work_path, out_path]);
     Ok(())
 }

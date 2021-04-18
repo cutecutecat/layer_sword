@@ -73,7 +73,7 @@ pub enum FileCheckError {
     SplitsUnmatchedError { index: usize },
 }
 
-fn clean_workspace(){
+pub fn clean_workspace(){
     let path_reader = GENERATE_PATH.read();
     if path_reader.is_ok() {
         let real_path_vec = path_reader
