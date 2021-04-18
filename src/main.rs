@@ -11,14 +11,13 @@ mod errors;
 
 use std::env;
 
-use log::error;
-
 use crate::client::cli_main;
+use crate::errors::raise_err;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     if let Err(e) = cli_main(args) {
         env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
-        error!("{}", e);
+        raise_err(e);
     }
 }

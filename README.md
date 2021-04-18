@@ -230,7 +230,7 @@ INFO cargo_tarpaulin::report: Coverage Results:
 || src/merge.rs: 29-31, 63-65, 78, 92, 97, 104, 132-134, 138-140, 153, 181
 || src/split.rs: 28-29, 35-36, 53-54, 56, 112, 179, 201
 || src/util.rs: 37, 49, 127-128, 141-142, 149-150, 155, 159
-|| tests/test_err.rs: 47, 71, 92, 113, 133, 155, 178
+|| tests/work_err.rs: 47, 71, 92, 113, 133, 155, 178
 || Tested/Total Lines:
 || src/client.rs: 130/176 +0%
 || src/inspector.rs: 124/179 +0%
@@ -238,10 +238,10 @@ INFO cargo_tarpaulin::report: Coverage Results:
 || src/merge.rs: 98/116 +0%
 || src/split.rs: 108/118 +0%
 || src/util.rs: 105/115 +0%
-|| tests/test_cmd.rs: 65/65 +0%
-|| tests/test_err.rs: 79/86 +0%
-|| tests/test_flow.rs: 186/186 +0%
-|| tests/test_util.rs: 22/22 +0%
+|| tests/work_cmd.rs: 65/65 +0%
+|| tests/work_err.rs: 79/86 +0%
+|| tests/work_flow.rs: 186/186 +0%
+|| tests/work_util.rs: 22/22 +0%
 ||
 85.94% coverage, 917/1067 lines covered, +0% change in coverage
 ```

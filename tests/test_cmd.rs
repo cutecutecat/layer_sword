@@ -13,10 +13,10 @@ type Result<T> = core::result::Result<T, LayerSwordError>;
 
 lazy_static! {
     static ref DIR_VEC: Vec<String> = vec![
-        "tests/out_split_basic", "tests/test_split_basic",
-        "tests/out_split_negatives", "tests/test_split_negatives",
-        "tests/out_split_config", "tests/test_split_config",
-        "tests/out_merge_basic", "tests/test_merge_basic"
+        "tests/out_split_basic", "tests/work_split_basic",
+        "tests/out_split_negatives", "tests/work_split_negatives",
+        "tests/out_split_config", "tests/work_split_config",
+        "tests/out_merge_basic", "tests/work_merge_basic"
     ].iter().map(|s| s.to_string()).collect();
 }
 
@@ -39,7 +39,7 @@ fn test_split_basic() -> Result<()> {
         "split",
         "-n", "os,lib,app",
         "-l", "1,3,1",
-        "-w", "tests/test_split_basic",
+        "-w", "tests/work_split_basic",
         "-o", "tests/out_split_basic",
         "-t", "tests/data/base.tar"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
@@ -73,7 +73,7 @@ fn test_split_negatives() -> Result<()> {
         "-l", "1,3,-1",
         "-o", "tests/out_split_negatives",
         "-n", "os,lib,app",
-        "-w", "tests/test_split_negatives"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_split_negatives"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let os_path = Path::new("tests/out_split_negatives/os.tar.gz");
@@ -104,7 +104,7 @@ fn test_split_config() -> Result<()> {
         "-t", "tests/data/base.tar",
         "-c", "tests/data/config.json",
         "-o", "tests/out_split_config",
-        "-w", "tests/test_split_config"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_split_config"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let os_path = Path::new("tests/out_split_config/os.tar.gz");
@@ -134,7 +134,7 @@ fn test_merge_basic() -> Result<()> {
         "merge",
         "-t", "tests/data/splits_base",
         "-o", "tests/out_merge_basic",
-        "-w", "tests/test_merge_basic"].iter().map(|s| s.to_string()).collect();
+        "-w", "tests/work_merge_basic"].iter().map(|s| s.to_string()).collect();
     cli_main(args)?;
 
     let tar_path = Path::new("tests/out_merge_basic/merge.tar");

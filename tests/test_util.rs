@@ -1,20 +1,10 @@
 #[cfg(test)]
 use std::path::Path;
 
-use layer_sword::util::{fetch_string_sha256, fetch_file_sha256, get_stack_id};
+use layer_sword::util::{fetch_file_sha256, get_stack_id};
 use layer_sword::errors::LayerSwordError;
 
 type Result<T> = core::result::Result<T, LayerSwordError>;
-
-#[test]
-fn test_string_sha256() -> Result<()> {
-    log::info!("Test for 'fetch_string_sha256' function");
-    let target_string = format!("layer_sword");
-    let hash = fetch_string_sha256(&target_string);
-    let right = format!("4deaf80f304870a2bc7a9a1f3a952d86d3db19e01094f28cad8a06e1ad6fb2c1");
-    assert_eq!(hash, right);
-    Ok(())
-}
 
 #[test]
 fn test_file_sha256() -> Result<()> {

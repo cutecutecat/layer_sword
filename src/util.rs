@@ -13,8 +13,17 @@ use walkdir::{WalkDir, DirEntry};
 use crate::errors::{FileCheckError, InternalError, raise, report, report_err, GENERATE_PATH};
 use crate::errors::InternalError::{TooLargeConfigSizeError, VecEmptyError, FilePathError};
 
-
-// 解压缩tar.gz文件
+/// decompress files with tar.gz suffix
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::extract_tar_gz;
+/// fn main() -> std::io::Result<()> {
+///     let mut f = extract_tar_gz("base.tar.gz", "tmp");
+///     Ok(())
+/// }
+/// ```
 pub fn extract_tar_gz<P>(gz_path: P, extract_path: P)
                          -> Result<(), FileCheckError>
     where
@@ -59,7 +68,17 @@ pub fn extract_tar_gz<P>(gz_path: P, extract_path: P)
     Ok(())
 }
 
-// 解压缩tar文件
+/// decompress files with tar suffix
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::extract_tar;
+/// fn main() -> std::io::Result<()> {
+///     let mut f = extract_tar("base.tar", "tmp");
+///     Ok(())
+/// }
+/// ```
 pub fn extract_tar<P>(tar_path: P, extract_path: P)
     where
         P: AsRef<Path> {
@@ -69,7 +88,17 @@ pub fn extract_tar<P>(tar_path: P, extract_path: P)
     raise(archive.unpack(extract_path));
 }
 
-// 压缩tar.gz文件
+/// compress tar.gz file from a file with tar suffix
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::compress_tar_gz;
+/// fn main() -> std::io::Result<()> {
+///     let mut f = compress_tar_gz("base.tar.gz", "base.tar", 6);
+///     Ok(())
+/// }
+/// ```
 pub fn compress_tar_gz<P>(gz_path: P, file_path: P, compress_level: u8)
     where
         P: AsRef<Path> {
@@ -88,8 +117,8 @@ pub fn compress_tar_gz<P>(gz_path: P, file_path: P, compress_level: u8)
     raise(tar.append_file(filename, &mut file));
 }
 
+/// fetch the file path on the tail of an entry(1 or 2 if exists)
 fn iter_child_path(entry: &DirEntry) -> PathBuf {
-    // mask name of split
     let mut depth = entry.depth() - 1;
     let mut mid_list: Vec<&OsStr> = vec![entry.file_name()];
     let mut mid_path = entry.path();
@@ -111,8 +140,17 @@ fn iter_child_path(entry: &DirEntry) -> PathBuf {
     child_name
 }
 
-// 压缩tar文件
-// std::io::Error
+/// compress tar file from a directory
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::compress_tar;
+/// fn main() -> std::io::Result<()> {
+///     let mut f = compress_tar("base.tar", "base");
+///     Ok(())
+/// }
+/// ```
 pub fn compress_tar<P>(tar_path: P, extract_path: P) -> Result<(), FileCheckError>
     where
         P: AsRef<Path> {
@@ -138,7 +176,20 @@ pub fn compress_tar<P>(tar_path: P, extract_path: P) -> Result<(), FileCheckErro
     Ok(())
 }
 
-// 初始化工作路径
+/// init structure of working directory
+///
+/// # Examples
+///
+/// ```no_run
+/// use std::path::Path;
+/// use layer_sword::util::init_path;
+/// fn main() -> std::io::Result<()> {
+///     let handle_path = Path::new("tmp");
+///     let out_path = Path::new("out");
+///     let mut f = init_path(handle_path, out_path);
+///     Ok(())
+/// }
+/// ```
 pub fn init_path(handle_path: &Path, out_path: &Path) {
     // set path for error clean work
     let mut path_writer = raise(GENERATE_PATH.write());
@@ -176,8 +227,17 @@ pub fn init_path(handle_path: &Path, out_path: &Path) {
     raise(fs::create_dir(merge_path));
 }
 
-// 读取configP
-// JsonValueError
+/// load json config from text file
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::load_config;
+/// fn main() -> std::io::Result<()> {
+///     let mut f = load_config("config.json");
+///     Ok(())
+/// }
+/// ```
 pub fn load_config<P>(config_path: P) -> Result<JsonValue, FileCheckError>
     where
         P: AsRef<Path> + Copy {
@@ -202,14 +262,40 @@ pub fn load_config<P>(config_path: P) -> Result<JsonValue, FileCheckError>
     Ok(ret)
 }
 
-// 写入config
+/// dump json config into text file
+///
+/// # Examples
+///
+/// ```no_run
+/// use json::{JsonValue, object};
+/// use layer_sword::util::dump_config;
+/// fn main() -> std::io::Result<()> {
+///     let config: JsonValue = object! {
+///                 parent_id: "123456",
+///                 stack_id: "stack",
+///                 index: -1
+///             };
+///     let mut f = dump_config(config, "config.json");
+///     Ok(())
+/// }
+/// ```
 pub fn dump_config<P>(config: JsonValue, config_path: P)
     where
         P: AsRef<Path> {
     raise(write(config_path, config.dump()));
 }
 
-// 验证文件sha256
+/// fetch sha256 hash of a file
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::util::fetch_file_sha256;
+/// fn main() -> std::io::Result<()> {
+///     let hash = fetch_file_sha256("base.tar");
+///     Ok(())
+/// }
+/// ```
 pub fn fetch_file_sha256<P>(path: P) -> String
     where
         P: AsRef<Path> {
@@ -221,7 +307,20 @@ pub fn fetch_file_sha256<P>(path: P) -> String
     real_hash
 }
 
-// 验证字符串sha256
+/// fetch sha256 hash of a string
+///
+/// # Examples
+///
+/// ```rust
+/// use layer_sword::util::fetch_string_sha256;
+/// fn main() -> std::io::Result<()> {
+///     let target_string = format!("layer_sword");
+///     let hash = fetch_string_sha256(&target_string);
+///     let right = format!("4deaf80f304870a2bc7a9a1f3a952d86d3db19e01094f28cad8a06e1ad6fb2c1");
+///     assert_eq!(hash, right);
+///     Ok(())
+/// }
+/// ```
 pub fn fetch_string_sha256(target_str: &String) -> String {
     let mut sha256 = Sha256::new();
     sha256.update(target_str);
@@ -230,7 +329,21 @@ pub fn fetch_string_sha256(target_str: &String) -> String {
     real_hash
 }
 
-// 计算层叠id
+/// calculate stack_id from last stack_id and parent_id
+///
+/// # Examples
+///
+/// ```rust
+/// use layer_sword::util::get_stack_id;
+/// fn main() -> std::io::Result<()> {
+///     let first_id = format!("a6e99f9b50e1bb8366d55fee15116a4da796c6bc37ebec09e7e77ec4cfa629fb");
+///     let second_id = format!("8de3e6511bb095f7d7d4133e877391f6ee1ec2bfda022bc24e2443277d3966b6");
+///     let hash = get_stack_id(&first_id, &second_id);
+///     let right = format!("a5a8033bc04ce56c3f0982deaabad8125581856fd702262772511efd69b18de9");
+///     assert_eq!(hash, right);
+///     Ok(())
+/// }
+/// ```
 pub fn get_stack_id(last_stack_id: &String, parent_id: &String) -> String {
     let mut raw_id = last_stack_id.clone();
     raw_id.push_str("\n");
@@ -238,6 +351,20 @@ pub fn get_stack_id(last_stack_id: &String, parent_id: &String) -> String {
     fetch_string_sha256(&raw_id)
 }
 
+/// macro convert PathBuf to string
+/// # Examples
+///
+/// ```rust
+/// use std::path::PathBuf;
+/// use layer_sword::path_to_string;
+/// use layer_sword::errors::raise;
+/// fn main() -> std::io::Result<()> {
+///     let path = PathBuf::from("/");
+///     let path = path_to_string!(path);
+///     assert_eq!(path, "/".to_string());
+///     Ok(())
+/// }
+/// ```
 #[macro_export]
 macro_rules! path_to_string {
     ($p:expr) => {
@@ -245,6 +372,20 @@ macro_rules! path_to_string {
     };
 }
 
+/// macro convert &osStr to string
+/// # Examples
+///
+/// ```rust
+/// use std::ffi::OsStr;
+/// use layer_sword::os_str_to_string;
+/// use layer_sword::errors::raise;
+/// fn main() -> std::io::Result<()> {
+///     let path = OsStr::new("/");
+///     let path = os_str_to_string!(path);
+///     assert_eq!(path, "/".to_string());
+///     Ok(())
+/// }
+/// ```
 #[macro_export]
 macro_rules! os_str_to_string {
     ($p:expr) => {

@@ -18,14 +18,14 @@ type Result<T> = core::result::Result<T, LayerSwordError>;
 
 lazy_static! {
     static ref DIR_VEC: Vec<String> = vec![
-        "tests/out_init_path", "tests/test_init_path",
-        "tests/out_inspect", "tests/test_inspect",
-        "tests/out_split_layer", "tests/test_split_layer",
-        "tests/out_deduction", "tests/test_deduction",
-        "tests/out_split_four_layer", "tests/test_split_four_layer",
-        "tests/out_split_two_layer", "tests/test_split_two_layer",
-        "tests/out_merge", "tests/test_merge",
-        "tests/out_compress_best","tests/test_compress_best"
+        "tests/out_init_path", "tests/work_init_path",
+        "tests/out_inspect", "tests/work_inspect",
+        "tests/out_split_layer", "tests/work_split_layer",
+        "tests/out_deduction", "tests/work_deduction",
+        "tests/out_split_four_layer", "tests/work_split_four_layer",
+        "tests/out_split_two_layer", "tests/work_split_two_layer",
+        "tests/out_merge", "tests/work_merge",
+        "tests/out_compress_best","tests/work_compress_best"
     ].iter().map(|s| s.to_string()).collect();
 }
 
@@ -44,14 +44,13 @@ fn before() {
 #[test]
 fn test_init_path() -> Result<()> {
     log::info!("Test for 'init_path' function.");
-    let work_path = Path::new("tests/test_init_path");
+    let work_path = Path::new("tests/work_init_path");
     let out_path = Path::new("tests/out_init_path");
     init_path(work_path, out_path);
-    let split_path = Path::new("tests/test_init_path/split");
-    let merge_path = Path::new("tests/test_init_path/merge");
+    let split_path = Path::new("tests/work_init_path/split");
+    let merge_path = Path::new("tests/work_init_path/merge");
     assert_eq!(split_path.exists(), true);
     assert_eq!(merge_path.exists(), true);
-
     Ok(())
 }
 
@@ -59,10 +58,10 @@ fn test_init_path() -> Result<()> {
 fn test_inspect() -> Result<()> {
     log::info!("Test for 'extract_tar' and 'inspect' functions.");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_inspect");
+    let work_path = Path::new("tests/work_inspect");
     let out_path = Path::new("tests/out_inspect");
     init_path(work_path, out_path);
-    let merge_path = Path::new("tests/test_inspect/merge");
+    let merge_path = Path::new("tests/work_inspect/merge");
     extract_tar(tar_path, merge_path);
 
     let inspector = BaseInspector {};
@@ -76,7 +75,7 @@ fn test_split_layer() -> Result<()> {
     log::info!("Test for basic split procedure.");
     let out_path = Path::new("tests/out_split_layer");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_split_layer");
+    let work_path = Path::new("tests/work_split_layer");
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -126,7 +125,7 @@ fn test_deduction() -> Result<()> {
     log::info!("Test for auto-deduction inside split procedure.");
     let out_path = Path::new("tests/out_deduction");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_deduction");
+    let work_path = Path::new("tests/work_deduction");
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -175,7 +174,7 @@ fn test_split_four_layer() -> Result<()> {
     log::info!("Test for four split dividing procedure.");
     let out_path = Path::new("tests/out_split_four_layer");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_split_four_layer");
+    let work_path = Path::new("tests/work_split_four_layer");
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -232,7 +231,7 @@ fn test_split_two_layer() -> Result<()> {
     log::info!("Test for two split dividing procedure.");
     let out_path = Path::new("tests/out_split_two_layer");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_split_two_layer");
+    let work_path = Path::new("tests/work_split_two_layer");
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
@@ -272,7 +271,7 @@ fn test_split_two_layer() -> Result<()> {
 fn test_merge() -> Result<()> {
     log::info!("Test for basic merge procedure.");
     let target_path = Path::new("tests/data/splits_base");
-    let work_path = Path::new("tests/test_merge");
+    let work_path = Path::new("tests/work_merge");
     let out_path = Path::new("tests/out_merge");
     init_path(work_path, out_path);
 
@@ -293,7 +292,7 @@ fn test_compress_best() -> Result<()> {
     log::info!("Test for compress at best level.");
     let out_path = Path::new("tests/out_compress_best");
     let tar_path = Path::new("tests/data/base.tar");
-    let work_path = Path::new("tests/test_compress_best");
+    let work_path = Path::new("tests/work_compress_best");
     init_path(work_path, out_path);
     let mut split_names: Vec<String> = Vec::new();
     split_names.push(format!("os"));
