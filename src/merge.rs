@@ -62,8 +62,7 @@ pub trait Merge: Split {
             let mut config_path = PathBuf::from(split_path);
             config_path.push(split_name);
             config_path.push("split_config.json");
-            let json_config = load_config(&config_path)
-                .map_err(|_| FileCheckError::ConfigFileError)?;
+            let json_config = load_config(&config_path)?;
             let mut split_config = self.init_config();
             split_config.load_json(json_config);
             split_config.set_path(

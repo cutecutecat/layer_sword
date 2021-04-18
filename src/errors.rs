@@ -51,8 +51,8 @@ pub enum TerminalError {
     NotFileError { path: String },
     #[error("Path `{path}` not exist")]
     NotExistError { path: String },
-    #[error(transparent)]
-    ClapError(#[from] clap::Error),
+    #[error("Clap arguments check failed")]
+    ClapError,
 }
 
 #[derive(ThisError, Debug)]
@@ -69,10 +69,23 @@ pub enum FileCheckError {
     FileExtensionError { extension: String, path: PathBuf },
     #[error("File have item '{path}' more than 2")]
     TooManyDepthError { path: String },
-    #[error(transparent)]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("Splits unmatched with more than 1 index '{index}'")]
     SplitsUnmatchedError { index: usize },
+}
+
+fn clean_workspace(){
+    let path_reader = GENERATE_PATH.read();
+    if path_reader.is_ok() {
+        let real_path_vec = path_reader
+            .expect("An impossible error occurred");
+        for path in &*real_path_vec {
+            if path.is_dir() {
+                if let Err(e) = fs::remove_dir_all(path) {
+                    error!("{:#?}", e);
+                }
+            }
+        }
+    }
 }
 
 pub fn report<V: Debug, E: Debug, O: Debug>(ret: Result<V, E>, map: O) -> Result<V, O> {
@@ -98,17 +111,6 @@ pub fn raise<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
 pub fn raise_err<E: Debug>(err: E) {
     error!("{:#?}", err);
     // clean temporary files if an error is raised
-    let path_reader = GENERATE_PATH.read();
-    if path_reader.is_ok() {
-        let real_path_vec = path_reader
-            .expect("An impossible error occurred");
-        for path in &*real_path_vec {
-            if path.is_dir() {
-                if let Err(e) = fs::remove_dir_all(path) {
-                    error!("{:#?}", e);
-                }
-            }
-        }
-    }
+    clean_workspace();
     std::process::exit(-1);
 }

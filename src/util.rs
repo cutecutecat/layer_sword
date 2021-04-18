@@ -26,7 +26,7 @@ pub fn extract_tar_gz<P>(gz_path: P, extract_path: P)
         .ok_or_else(|| FileCheckError::SplitFileError)?
         .comment()
         .ok_or_else(|| FileCheckError::SplitFileError)?;
-    let hash = String::from_utf8(Vec::from(hash_u8))?;
+    let hash = raise(String::from_utf8(Vec::from(hash_u8)));
     let mut archive = Archive::new(dec);
     let mut file_vec: Vec<PathBuf> = Vec::new();
     for entry in archive

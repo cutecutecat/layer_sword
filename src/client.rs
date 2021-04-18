@@ -75,8 +75,7 @@ fn parse_cfg_from_file(sub: &ArgMatches)
     if !config_path.is_file() {
         return Err(TerminalError::NotFileError { path: config.to_string() });
     }
-    let client_config = load_config(config_path)
-        .map_err(|_| TerminalError::InputConfigError)?;
+    let client_config = raise(load_config(config_path));
 
     let names = match &client_config["names"] {
         JsonValue::Array(n) => { Ok(n) }
@@ -298,8 +297,8 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
     } else {
         map_result = result.map_err(|e: clap::Error| {
             env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
-            error!("{}", e);
-            e.into()
+            error!("{:#}", e);
+            TerminalError::ClapError
         });
     }
     let matches = map_result?;

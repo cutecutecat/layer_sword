@@ -9,7 +9,7 @@ use json::JsonValue;
 use crate::inspector::Inspect;
 use crate::os_str_to_string;
 use crate::util::{fetch_file_sha256, load_config};
-use crate::errors::{FileCheckError, InternalError, raise};
+use crate::errors::{FileCheckError, InternalError, raise, report};
 
 pub struct BaseInspector {}
 
@@ -98,8 +98,7 @@ impl Inspect for BaseInspector {
             });
         }
         // 验证diff_id存在并返回
-        let config = load_config(config_path)
-            .map_err(|_| FileCheckError::ConfigFileError)?;
+        let config = load_config(config_path)?;
         let diff_ids = &config["rootfs"]["diff_ids"];
         let diff_ids = match diff_ids {
             JsonValue::Array(ids) => { Ok(ids) }
@@ -167,8 +166,7 @@ impl Inspect for BaseInspector {
                 } else if now_path == "json" {
                     let mut layer_json_path = layer_dir_path.clone();
                     layer_json_path.push(now_path);
-                    let config = load_config(&layer_json_path)
-                        .map_err(|_| FileCheckError::ConfigFileError)?;
+                    let config = load_config(&layer_json_path)?;
                     let parent_layer = match config["parent"].clone() {
                         JsonValue::String(config_item) => { Ok(config_item) }
                         JsonValue::Null => { Ok(format!("")) }
@@ -211,14 +209,13 @@ impl Inspect for BaseInspector {
 
     fn inspect_manifest(&self, extract_path: &Path, file_map: &HashMap<String, PathBuf, RandomState>, layer_hash_set: &HashSet<String, RandomState>) -> Result<Vec<PathBuf>, FileCheckError> {
         // 验证manefist.json内描述文件存在
-        let manifest_path = raise(
-            file_map
-                .get("manifest_path")
-                .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") }));
-        let config = load_config(manifest_path)
-            .map_err(|_| FileCheckError::BadDockerFileError {
-                msg: format!("manifest file parse failed")
-            })?;
+        let manifest_path = raise(file_map
+            .get("manifest_path")
+            .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") }));
+        let config = report(load_config(manifest_path),
+                            FileCheckError::BadDockerFileError {
+                                msg: format!("manifest file parse failed")
+                            })?;
         let config_array = match &config {
             JsonValue::Array(config_item) => { Ok(config_item) }
             _ => {
