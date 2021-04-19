@@ -12,6 +12,7 @@ use crate::merge::Merge;
 use crate::util::{load_config, init_path};
 use crate::errors::{TerminalError, LayerSwordError, InternalError, raise};
 
+/// set logger and decide whether display by argument '**quiet**'
 fn parse_and_set_logger(sub: &ArgMatches) {
     if sub.is_present("quiet") {
         env_logger::builder()
@@ -327,10 +328,14 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         let split_map: HashMap<String, i16>;
         if sub.is_present("config") {
             parse_and_set_logger(&sub);
-            (split_names, split_map) = parse_cfg_from_file(sub)?;
+            let (ret_names,ret_map) = parse_cfg_from_file(sub)?;
+            split_names = ret_names;
+            split_map = ret_map;
         } else if sub.is_present("names") & sub.is_present("layers") {
             parse_and_set_logger(&sub);
-            (split_names, split_map) = parse_cfg_from_cli(sub)?;
+            let (ret_names,ret_map) = parse_cfg_from_cli(sub)?;
+            split_names = ret_names;
+            split_map = ret_map;
         } else {
             return Err(TerminalError::WithoutArgError {
                 arg: format!("(names && layers) || config"),

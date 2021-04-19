@@ -73,7 +73,8 @@ pub enum FileCheckError {
     SplitsUnmatchedError { index: usize },
 }
 
-pub fn clean_workspace(){
+/// clean temporary files defined in error.rs GENERATE_PATH
+pub fn clean_workspace() {
     let path_reader = GENERATE_PATH.read();
     if path_reader.is_ok() {
         let real_path_vec = path_reader
@@ -88,6 +89,19 @@ pub fn clean_workspace(){
     }
 }
 
+/// print error info from result and convert it to another type
+///
+/// # Examples
+///
+/// ```rust
+/// use layer_sword::errors::report;
+///
+/// let x: Result<u8, u8> = Ok(1);
+/// assert_eq!(report(x, 12), Ok(1));
+///
+/// let x: Result<u8, u8> = Err(11);
+/// assert_eq!(report(x, 12), Err(12));
+/// ```
 pub fn report<V: Debug, E: Debug, O: Debug>(ret: Result<V, E>, map: O) -> Result<V, O> {
     if ret.is_err() {
         return Err(report_err(ret.expect_err("An impossible error occurred"), map));
@@ -96,11 +110,35 @@ pub fn report<V: Debug, E: Debug, O: Debug>(ret: Result<V, E>, map: O) -> Result
     }
 }
 
+/// print error info and convert it to another type
+///
+/// # Examples
+///
+/// ```rust
+/// use layer_sword::errors::report_err;
+///
+/// assert_eq!(report_err(1, 11), 11);
+/// ```
 pub fn report_err<E: Debug, O: Debug>(err: E, map: O) -> O {
     error!("{:#?}", err);
     map
 }
 
+/// print error info from result and interrupt the program
+///
+/// # Examples
+///
+/// ```rust
+/// use layer_sword::errors::raise;
+///
+/// let x: Result<u8, u8> = Ok(1);
+/// assert_eq!(raise(x), 1);
+/// ```
+/// ```no_run
+/// use layer_sword::errors::raise;
+/// let x: Result<u8, u8> = Err(11);
+/// raise(x);
+/// ```
 pub fn raise<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
     if ret.is_err() {
         raise_err(ret.as_ref().expect_err("An impossible error occurred"));
@@ -108,6 +146,16 @@ pub fn raise<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
     ret.expect("An impossible error occurred")
 }
 
+/// print error info and interrupt the program
+///
+/// # Examples
+///
+/// ```no_run
+/// use layer_sword::errors::raise_err;
+///
+/// let x: Result<u8, u8> = Err(11);
+/// raise_err(x);
+/// ```
 pub fn raise_err<E: Debug>(err: E) {
     error!("{:#?}", err);
     // clean temporary files if an error is raised

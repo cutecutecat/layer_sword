@@ -11,7 +11,7 @@ use crate::util::{extract_tar, load_config, compress_tar, extract_tar_gz};
 use crate::errors::{FileCheckError, InternalError, raise};
 
 pub trait Merge: Split {
-    // 获得路径下全部文件并筛选出tar
+    /// decompress all splits from tar.gz file
     fn extract_to_tar(&self, target_path: &Path, work_path: &Path) -> Result<Vec<PathBuf>, FileCheckError> {
         let all_extracted_paths = raise(fs::read_dir(target_path));
 
@@ -41,7 +41,7 @@ pub trait Merge: Split {
         Ok(tar_vec)
     }
 
-    // 新建文件夹分别解压缩
+    /// decompress all splits from tar file
     fn extract_to_directory(&self, tar_vec: Vec<PathBuf>, split_path: &Path)
                             -> Result<Vec<Box<dyn Config>>, FileCheckError> {
         let mut split_config_vec: Vec<Box<dyn Config>> = Vec::new();
@@ -81,7 +81,7 @@ pub trait Merge: Split {
     }
 
 
-    // 验证分割哈希
+    /// check all splits for its hash
     fn check_all_splits(&self, split_config_vec: Vec<Box<dyn Config>>)
                         -> Result<Vec<String>, FileCheckError> {
         let mut stack_id = String::new();
@@ -102,6 +102,7 @@ pub trait Merge: Split {
         Ok(dir_path_vec)
     }
 
+    /// copy and merge files and directories
     fn merge_checked_files(&self,
                            dir_path_vec: Vec<String>,
                            merge_path: &Path) {
@@ -143,6 +144,7 @@ pub trait Merge: Split {
         }
     }
 
+    /// function called for a whole merge procedure
     fn merge_layer(&self,
                    inspector: Box<dyn Inspect>,
                    target_path: &Path,
@@ -177,11 +179,13 @@ pub trait Merge: Split {
         Ok(())
     }
 
+    /// check config of one split
     fn check_with_config(&self,
                          config_body: &Box<dyn Config>,
                          stack_id: String,
                          parent_id: String)
                          -> Result<(String, String), FileCheckError>;
 
+    /// get a instance of layer_sword::dominator::Config struct object
     fn init_config(&self) -> Box<dyn Config>;
 }

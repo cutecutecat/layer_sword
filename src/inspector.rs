@@ -6,21 +6,30 @@ use std::collections::{HashMap, HashSet};
 use crate::errors::FileCheckError;
 
 pub trait Inspect {
+    /// inspect route existence and fetch route map
     fn inspect_route(&self, extract_path: &Path)
                      -> Result<(HashMap<String, PathBuf>, HashSet<String>),
                          FileCheckError>;
+
+    /// inspect info inside image config file
     fn inspect_config(&self, file_map: &HashMap<String, PathBuf>)
                       -> Result<HashSet<String>, FileCheckError>;
+
+    /// inspect config inside all layers
     fn inspect_layer(&self,
                      extract_path: &Path,
                      layer_hash_set: &HashSet<String>,
                      config_tar_hash: &HashSet<String>)
                      -> Result<(), FileCheckError>;
+
+    /// inspect info inside image manifest file
     fn inspect_manifest(&self,
                         extract_path: &Path,
                         file_map: &HashMap<String, PathBuf>,
                         layer_hash_set: &HashSet<String>)
                         -> Result<Vec<PathBuf>, FileCheckError>;
+
+    /// function called for a whole inspection procedure
     fn inspect(&self, extract_path: &Path)
                -> Result<(HashMap<String, PathBuf>, Vec<PathBuf>),
                    FileCheckError> {

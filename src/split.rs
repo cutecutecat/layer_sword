@@ -10,6 +10,7 @@ use crate::util::{compress_tar, compress_tar_gz, extract_tar};
 use crate::errors::{FileCheckError, InternalError, raise, raise_err};
 
 pub trait Split {
+    /// deduct item -1 to real value from splits number of layer
     fn deduct_split_map(&self,
                         split_names: &Vec<String>,
                         split_map: HashMap<String, i16>,
@@ -63,11 +64,12 @@ pub trait Split {
         Ok(deduct_map)
     }
 
+    /// copy directories of layers inside image
     fn copy_split_directories(&self,
                               split_names: &Vec<String>,
                               split_map: &HashMap<String, i16>,
                               layer_dir_set: &Vec<PathBuf>,
-                              top_pathbuf: &PathBuf) {
+                              top_path: &PathBuf) {
         let mut id_from: i16 = 0;
 
         let mut copy_options_dir = dir::CopyOptions::new();
@@ -75,9 +77,9 @@ pub trait Split {
         copy_options_dir.copy_inside = true;
 
         for name in split_names {
-            let mut split_pathbuf = top_pathbuf.clone();
-            split_pathbuf.push(name.clone());
-            raise(fs::create_dir(&split_pathbuf));
+            let mut split_path = top_path.clone();
+            split_path.push(name.clone());
+            raise(fs::create_dir(&split_path));
 
             for id in 0..split_map[name] {
                 let src_path = raise(layer_dir_set
@@ -86,7 +88,7 @@ pub trait Split {
                 let item_name = raise(src_path
                     .file_name()
                     .ok_or_else(|| InternalError::FilePathError { path: src_path.clone() }));
-                let mut dst_path = split_pathbuf.clone();
+                let mut dst_path = split_path.clone();
                 dst_path.push(item_name);
                 raise(dir::copy(src_path, dst_path, &copy_options_dir));
             }
@@ -94,6 +96,7 @@ pub trait Split {
         }
     }
 
+    /// copy files inside image
     fn copy_split_files(&self,
                         split_names: &Vec<String>,
                         file_map: HashMap<String, PathBuf>,
@@ -115,6 +118,7 @@ pub trait Split {
         }
     }
 
+    /// compress a directory into a tar file
     fn pack_into_tar(&self,
                      split_path: &PathBuf, name: &String)
                      -> Result<PathBuf, FileCheckError> {
@@ -129,6 +133,7 @@ pub trait Split {
         Ok(tar_path)
     }
 
+    /// compress all splits into tar file
     fn pack_all_tar(&self,
                     split_names: &Vec<String>,
                     split_path: PathBuf) -> Result<Vec<PathBuf>, FileCheckError> {
@@ -150,6 +155,7 @@ pub trait Split {
         Ok(tar_path_vec)
     }
 
+    /// compress all splits into tar.gz file
     fn pack_all_gz(&self, out_path: &PathBuf, tar_path_vec: Vec<PathBuf>, compress_level: u8) {
         for tar_path in tar_path_vec.iter() {
             let mut gz_path = out_path.clone();
@@ -159,6 +165,7 @@ pub trait Split {
         }
     }
 
+    /// function called for a whole split procedure
     fn split_layer(&self,
                    inspector: Box<dyn Inspect>,
                    tar_path: &Path,
@@ -206,6 +213,7 @@ pub trait Split {
         Ok(())
     }
 
+    /// compress one split into tar file with config of inspection info
     fn pack_tar_with_config(
         &self,
         split_index: usize,

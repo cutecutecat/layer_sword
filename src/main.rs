@@ -1,6 +1,3 @@
-#![feature(associated_type_defaults)]
-#![feature(destructuring_assignment)]
-
 mod dominator;
 mod inspector;
 mod split;
