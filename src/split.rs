@@ -7,7 +7,7 @@ use fs_extra::{dir, file};
 use crate::inspector::Inspect;
 use crate::os_str_to_string;
 use crate::util::{compress_tar, compress_tar_gz, extract_tar};
-use crate::errors::{FileCheckError, InternalError, raise, raise_err};
+use crate::errors::{FileCheckError, InternalError, raise, raise_err, raise_debug};
 
 pub trait Split {
     /// deduct item -1 to real value from splits number of layer

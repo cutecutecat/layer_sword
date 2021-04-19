@@ -29,6 +29,7 @@ fn parse_and_set_logger(sub: &ArgMatches) {
     }
 }
 
+/// parse target_path, work_path and out_path from arguments
 fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
                   -> Result<(&'a Path, &'a Path, &'a Path), TerminalError> {
     let target = sub.value_of("target")
@@ -62,6 +63,7 @@ fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
     Ok((target_path, work_path, out_path))
 }
 
+/// parse split names and numbers from config file
 fn parse_cfg_from_file(sub: &ArgMatches)
                        -> Result<(Vec<String>, HashMap<String, i16>), TerminalError> {
     let config = sub.value_of("config")
@@ -100,6 +102,7 @@ fn parse_cfg_from_file(sub: &ArgMatches)
     Ok((split_names, split_map))
 }
 
+/// parse split names and numbers from arguments
 fn parse_cfg_from_cli(sub: &ArgMatches)
                       -> Result<(Vec<String>, HashMap<String, i16>), TerminalError> {
     let names = sub
@@ -131,6 +134,7 @@ fn parse_cfg_from_cli(sub: &ArgMatches)
     Ok((split_names, split_map))
 }
 
+/// inspect split names and numbers
 fn prepare_splits_info(names: Vec<String>, layers: Vec<String>)
                        -> Result<(Vec<String>, HashMap<String, i16>), TerminalError> {
     let mut split_names: Vec<String> = Vec::new();
@@ -169,12 +173,13 @@ fn prepare_splits_info(names: Vec<String>, layers: Vec<String>)
     Ok((split_names, split_map))
 }
 
-
+/// choose exact dominator and inspector
 fn pick_dominator_and_inspector()
     -> (Box<dyn Merge>, Box<dyn Inspect>) {
     (Box::new(BaseDominator {}), Box::new(BaseInspector {}))
 }
 
+/// function called for a whole procedure
 pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
     let result: Result<ArgMatches, clap::Error> = App::new("LayerSword")
         .version("0.1.0")

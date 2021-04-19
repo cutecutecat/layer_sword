@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::sync::RwLock;
 use std::fs;
 
@@ -102,7 +102,7 @@ pub fn clean_workspace() {
 /// let x: Result<u8, u8> = Err(11);
 /// assert_eq!(report(x, 12), Err(12));
 /// ```
-pub fn report<V: Debug, E: Debug, O: Debug>(ret: Result<V, E>, map: O) -> Result<V, O> {
+pub fn report<V: Debug, E: Debug + Display, O>(ret: Result<V, E>, map: O) -> Result<V, O> {
     if ret.is_err() {
         return Err(report_err(ret.expect_err("An impossible error occurred"), map));
     } else {
@@ -119,8 +119,8 @@ pub fn report<V: Debug, E: Debug, O: Debug>(ret: Result<V, E>, map: O) -> Result
 ///
 /// assert_eq!(report_err(1, 11), 11);
 /// ```
-pub fn report_err<E: Debug, O: Debug>(err: E, map: O) -> O {
-    error!("{:#?}", err);
+pub fn report_err<E: Display, O>(err: E, map: O) -> O {
+    error!("{:#}", err);
     map
 }
 
@@ -139,7 +139,7 @@ pub fn report_err<E: Debug, O: Debug>(err: E, map: O) -> O {
 /// let x: Result<u8, u8> = Err(11);
 /// raise(x);
 /// ```
-pub fn raise<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
+pub fn raise<V: Debug, E: Debug + Display>(ret: Result<V, E>) -> V {
     if ret.is_err() {
         raise_err(ret.as_ref().expect_err("An impossible error occurred"));
     }
@@ -153,12 +153,42 @@ pub fn raise<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
 /// ```no_run
 /// use layer_sword::errors::raise_err;
 ///
-/// let x: Result<u8, u8> = Err(11);
+/// let x: u8 = 11;
 /// raise_err(x);
 /// ```
-pub fn raise_err<E: Debug>(err: E) {
-    error!("{:#?}", err);
+pub fn raise_err<E: Display>(err: E) {
+    error!("{:#}", err);
     // clean temporary files if an error is raised
     clean_workspace();
     std::process::exit(-1);
+}
+
+/// print error info and interrupt the program(used for types without Display trait)
+///
+/// # Examples
+///
+/// ```rust
+/// use std::ffi::OsString;
+/// use layer_sword::errors::raise_debug;
+///
+/// let x: Result<u8, OsString> = Ok(1);
+/// assert_eq!(raise_debug(x), 1);
+/// ```
+/// ```no_run
+/// use std::ffi::OsString;
+/// use layer_sword::errors::raise_debug;
+///
+/// let e = OsString::new();
+/// let x: Result<u8, OsString> = Err(e);
+/// raise_debug(x);
+/// ```
+pub fn raise_debug<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
+    if ret.is_err() {
+        let err = ret.as_ref().expect_err("An impossible error occurred");
+        error!("{:#?}", err);
+        // clean temporary files if an error is raised
+        clean_workspace();
+        std::process::exit(-1);
+    }
+    ret.expect("An impossible error occurred")
 }

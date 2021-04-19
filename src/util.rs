@@ -357,7 +357,7 @@ pub fn get_stack_id(last_stack_id: &String, parent_id: &String) -> String {
 /// ```rust
 /// use std::path::PathBuf;
 /// use layer_sword::path_to_string;
-/// use layer_sword::errors::raise;
+/// use layer_sword::errors::raise_debug;
 /// fn main() -> std::io::Result<()> {
 ///     let path = PathBuf::from("/");
 ///     let path = path_to_string!(path);
@@ -368,7 +368,7 @@ pub fn get_stack_id(last_stack_id: &String, parent_id: &String) -> String {
 #[macro_export]
 macro_rules! path_to_string {
     ($p:expr) => {
-        raise($p.into_os_string().into_string())
+        raise_debug($p.into_os_string().into_string())
     };
 }
 
@@ -378,7 +378,7 @@ macro_rules! path_to_string {
 /// ```rust
 /// use std::ffi::OsStr;
 /// use layer_sword::os_str_to_string;
-/// use layer_sword::errors::raise;
+/// use layer_sword::errors::raise_debug;
 /// fn main() -> std::io::Result<()> {
 ///     let path = OsStr::new("/");
 ///     let path = os_str_to_string!(path);
@@ -389,6 +389,6 @@ macro_rules! path_to_string {
 #[macro_export]
 macro_rules! os_str_to_string {
     ($p:expr) => {
-        raise($p.to_os_string().into_string())
+        raise_debug($p.to_os_string().into_string())
     };
 }

@@ -8,7 +8,7 @@ use crate::dominator::Config;
 use crate::inspector::Inspect;
 use crate::path_to_string;
 use crate::util::{extract_tar, load_config, compress_tar, extract_tar_gz};
-use crate::errors::{FileCheckError, InternalError, raise};
+use crate::errors::{FileCheckError, InternalError, raise, raise_debug};
 
 pub trait Merge: Split {
     /// decompress all splits from tar.gz file

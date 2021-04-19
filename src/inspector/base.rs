@@ -9,7 +9,7 @@ use json::JsonValue;
 use crate::inspector::Inspect;
 use crate::os_str_to_string;
 use crate::util::{fetch_file_sha256, load_config};
-use crate::errors::{FileCheckError, InternalError, raise, report};
+use crate::errors::{FileCheckError, InternalError, raise, report, raise_debug};
 
 pub struct BaseInspector {}
 
@@ -34,17 +34,17 @@ impl Inspect for BaseInspector {
                 .file_name()
                 .into_string()
                 .map_err(|_| InternalError::ConvertError));
-            // 查找manifest
+            // construct manifest
             if manifest_path.components().next().is_none() && now_path == "manifest.json" {
                 manifest_path.push(extract_path);
                 manifest_path.push(&now_path);
             }
-            // 查找repositories
+            // construct repositories
             if repositories_path.components().next().is_none() && now_path == "repositories" {
                 repositories_path.push(extract_path);
                 repositories_path.push(&now_path);
             }
-            // 查找config和layer
+            // construct config and layer
             let judge_sha256 = expr_layer_and_config.is_match(&*now_path);
             if judge_sha256 == true {
                 // this is a config
@@ -81,7 +81,7 @@ impl Inspect for BaseInspector {
     fn inspect_config(&self, file_map: &HashMap<String, PathBuf, RandomState>) -> Result<HashSet<String, RandomState>, FileCheckError> {
         let mut layer_tar_hash: HashSet<String> = HashSet::new();
 
-        // 验证config.json自身哈希
+        // check hash of config.json itself
         let config_path: &Path = raise(file_map
             .get("config_path")
             .ok_or_else(|| InternalError::KeyError { key: format!("config_path") }))
@@ -97,7 +97,7 @@ impl Inspect for BaseInspector {
                     \nreal:'{}'\nright:'{}'", config_filestem.clone(), hash.clone())
             });
         }
-        // 验证diff_id存在并返回
+        // check diff_id's existence
         let config = load_config(config_path)?;
         let diff_ids = &config["rootfs"]["diff_ids"];
         let diff_ids = match diff_ids {
@@ -195,7 +195,7 @@ impl Inspect for BaseInspector {
                 });
             }
         }
-        // 对称差
+        // check same layers inside config and path
         let error_layer: Vec<_> = config_tar_hash
             .symmetric_difference(&real_tar_hash)
             .collect();
@@ -208,7 +208,6 @@ impl Inspect for BaseInspector {
     }
 
     fn inspect_manifest(&self, extract_path: &Path, file_map: &HashMap<String, PathBuf, RandomState>, layer_hash_set: &HashSet<String, RandomState>) -> Result<Vec<PathBuf>, FileCheckError> {
-        // 验证manefist.json内描述文件存在
         let manifest_path = raise(file_map
             .get("manifest_path")
             .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") }));
