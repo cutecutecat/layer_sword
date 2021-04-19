@@ -1,5 +1,6 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+use std::fs;
 
 use clap::{Arg, App, SubCommand, ArgGroup, ArgMatches, AppSettings};
 use json::JsonValue;
@@ -9,8 +10,10 @@ use crate::inspector::base::BaseInspector;
 use crate::inspector::Inspect;
 use crate::dominator::base::BaseDominator;
 use crate::merge::Merge;
+use crate::validator::{valid_alphabet, valid_int};
+use crate::path_to_string;
 use crate::util::{load_config, init_path};
-use crate::errors::{TerminalError, LayerSwordError, InternalError, raise};
+use crate::errors::{TerminalError, LayerSwordError, InternalError, raise, report, raise_debug};
 
 /// set logger and decide whether display by argument '**quiet**'
 fn parse_and_set_logger(sub: &ArgMatches) {
@@ -29,9 +32,26 @@ fn parse_and_set_logger(sub: &ArgMatches) {
     }
 }
 
+/// check path or its parent exists and normalize it to standard format
+fn normalize_path(path: PathBuf) -> Result<PathBuf, TerminalError> {
+    if path.is_dir() {
+        report(fs::canonicalize(path.clone()),
+               TerminalError::NotExistError { path: path_to_string!(path) })
+    } else {
+        let mut path = path.to_path_buf();
+        path.pop();
+        if path.exists() {
+            report(fs::canonicalize(path.clone()),
+                   TerminalError::NotExistError { path: path_to_string!(path) })
+        } else {
+            Err(TerminalError::NotExistError { path: path_to_string!(path) })
+        }
+    }
+}
+
 /// parse target_path, work_path and out_path from arguments
-fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
-                  -> Result<(&'a Path, &'a Path, &'a Path), TerminalError> {
+fn parse_path(sub: &ArgMatches, mode: &str)
+              -> Result<(PathBuf, PathBuf, PathBuf), TerminalError> {
     let target = sub.value_of("target")
         .ok_or_else(|| TerminalError::WithoutArgError {
             arg: format!("target"),
@@ -48,9 +68,9 @@ fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
             msg: sub.usage().to_string(),
         })?;
 
-    let target_path = Path::new(target);
-    let work_path = Path::new(work);
-    let out_path = Path::new(out);
+    let target_path = PathBuf::from(target);
+    let raw_work_path = PathBuf::from(work);
+    let raw_out_path = PathBuf::from(out);
 
     if !target_path.exists() {
         return Err(TerminalError::NotExistError { path: target.to_string() });
@@ -60,6 +80,8 @@ fn parse_path<'a>(sub: &'a ArgMatches, mode: &str)
     } else if !target_path.is_dir() && mode == "merge" {
         return Err(TerminalError::NotDirectoryError { path: target.to_string() });
     }
+    let work_path = normalize_path(raw_work_path.to_path_buf())?;
+    let out_path = normalize_path(raw_out_path.to_path_buf())?;
     Ok((target_path, work_path, out_path))
 }
 
@@ -209,6 +231,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .required_unless("config")
                 .conflicts_with("config")
                 .requires("layers")
+                .validator(valid_alphabet)
                 .help("Names of the splits"))
             .arg(Arg::with_name("layers")
                 .short("l")
@@ -219,6 +242,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .required_unless("config")
                 .conflicts_with("config")
                 .requires("names")
+                .validator(valid_int)
                 .help("Layer number of splits"))
             .arg(Arg::with_name("target")
                 .short("t")
@@ -280,7 +304,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 .takes_value(true)
                 .value_name("DIRECTORY")
                 .default_value("tmp")
-                .help("Path of temporary worksiing directory")).
+                .help("Path of temporary working directory")).
             arg(Arg::with_name("output")
                 .short("o")
                 .long("output")
@@ -333,12 +357,12 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         let split_map: HashMap<String, i16>;
         if sub.is_present("config") {
             parse_and_set_logger(&sub);
-            let (ret_names,ret_map) = parse_cfg_from_file(sub)?;
+            let (ret_names, ret_map) = parse_cfg_from_file(sub)?;
             split_names = ret_names;
             split_map = ret_map;
         } else if sub.is_present("names") & sub.is_present("layers") {
             parse_and_set_logger(&sub);
-            let (ret_names,ret_map) = parse_cfg_from_cli(sub)?;
+            let (ret_names, ret_map) = parse_cfg_from_cli(sub)?;
             split_names = ret_names;
             split_map = ret_map;
         } else {
@@ -347,15 +371,15 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
                 msg: matches.usage().to_string(),
             }.into());
         }
-        init_path(work_path, out_path);
+        init_path(work_path.as_path(), out_path.as_path());
 
         if let Err(e) = dominator.split_layer(
             inspector,
-            target_path,
+            target_path.as_path(),
             split_names,
             split_map,
-            work_path,
-            out_path,
+            work_path.as_path(),
+            out_path.as_path(),
             level) {
             error!("{}", e);
             return Err(e.into());
@@ -364,9 +388,13 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
         parse_and_set_logger(&sub);
         let (target_path, work_path, out_path) =
             parse_path(&sub, "merge")?;
-        init_path(work_path, out_path);
+        init_path(work_path.as_path(), out_path.as_path());
 
-        if let Err(e) = dominator.merge_layer(inspector, target_path, work_path, out_path) {
+
+        if let Err(e) = dominator.merge_layer(inspector,
+                                              target_path.as_path(),
+                                              work_path.as_path(),
+                                              out_path.as_path()) {
             error!("{}", e);
             return Err(e.into());
         }

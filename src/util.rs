@@ -217,10 +217,10 @@ pub fn init_path(handle_path: &Path, out_path: &Path) {
             }
         }
     }
-    let mut split_path = handle_path.clone().to_path_buf();
+    let mut split_path = handle_path.to_path_buf();
     split_path.push("split");
 
-    let mut merge_path = handle_path.clone().to_path_buf();
+    let mut merge_path = handle_path.to_path_buf();
     merge_path.push("merge");
 
     raise(fs::create_dir(split_path));

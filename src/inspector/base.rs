@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::collections::hash_map::RandomState;
 use std::collections::{HashMap, HashSet};
 use std::fs::read_dir;
 
@@ -14,7 +13,8 @@ use crate::errors::{FileCheckError, InternalError, raise, report, raise_debug};
 pub struct BaseInspector {}
 
 impl Inspect for BaseInspector {
-    fn inspect_route(&self, extract_path: &Path) -> Result<(HashMap<String, PathBuf, RandomState>, HashSet<String, RandomState>), FileCheckError> {
+    fn inspect_route(&self, extract_path: &Path)
+                     -> Result<(HashMap<String, PathBuf>, HashSet<String>), FileCheckError> {
         let mut file_map: HashMap<String, PathBuf> = HashMap::new();
         let mut layer_hash_set: HashSet<String> = HashSet::new();
 
@@ -78,7 +78,8 @@ impl Inspect for BaseInspector {
     }
 
 
-    fn inspect_config(&self, file_map: &HashMap<String, PathBuf, RandomState>) -> Result<HashSet<String, RandomState>, FileCheckError> {
+    fn inspect_config(&self, file_map: &HashMap<String, PathBuf>)
+                      -> Result<HashSet<String>, FileCheckError> {
         let mut layer_tar_hash: HashSet<String> = HashSet::new();
 
         // check hash of config.json itself
@@ -129,7 +130,10 @@ impl Inspect for BaseInspector {
         Ok(layer_tar_hash)
     }
 
-    fn inspect_layer(&self, extract_path: &Path, layer_hash_set: &HashSet<String, RandomState>, config_tar_hash: &HashSet<String, RandomState>) -> Result<(), FileCheckError> {
+    fn inspect_layer(&self,
+                     extract_path: &Path,
+                     layer_hash_set: &HashSet<String>,
+                     config_tar_hash: &HashSet<String>) -> Result<(), FileCheckError> {
         if config_tar_hash.len() != layer_hash_set.len() {
             return Err(FileCheckError::BadDockerFileError {
                 msg: format!("layer number is different from what inside config.json\
@@ -207,7 +211,10 @@ impl Inspect for BaseInspector {
         Ok(())
     }
 
-    fn inspect_manifest(&self, extract_path: &Path, file_map: &HashMap<String, PathBuf, RandomState>, layer_hash_set: &HashSet<String, RandomState>) -> Result<Vec<PathBuf>, FileCheckError> {
+    fn inspect_manifest(&self,
+                        extract_path: &Path,
+                        file_map: &HashMap<String, PathBuf>,
+                        layer_hash_set: &HashSet<String>) -> Result<Vec<PathBuf>, FileCheckError> {
         let manifest_path = raise(file_map
             .get("manifest_path")
             .ok_or_else(|| InternalError::KeyError { key: format!("manifest_path") }));

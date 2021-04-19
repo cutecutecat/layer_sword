@@ -3,6 +3,7 @@ mod inspector;
 mod split;
 mod merge;
 mod client;
+mod validator;
 mod util;
 mod errors;
 
