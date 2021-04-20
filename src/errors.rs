@@ -157,6 +157,7 @@ pub fn raise<V: Debug, E: Debug + Display>(ret: Result<V, E>) -> V {
 /// raise_err(x);
 /// ```
 pub fn raise_err<E: Display>(err: E) {
+    env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
     error!("{:#}", err);
     // clean temporary files if an error is raised
     clean_workspace();
@@ -184,6 +185,7 @@ pub fn raise_err<E: Display>(err: E) {
 /// ```
 pub fn raise_debug<V: Debug, E: Debug>(ret: Result<V, E>) -> V {
     if ret.is_err() {
+        env_logger::builder().is_test(false).try_init().unwrap_or_else(|_| {});
         let err = ret.as_ref().expect_err("An impossible error occurred");
         error!("{:#?}", err);
         // clean temporary files if an error is raised

@@ -11,9 +11,8 @@ use crate::inspector::Inspect;
 use crate::dominator::base::BaseDominator;
 use crate::merge::Merge;
 use crate::validator::{valid_alphabet, valid_int};
-use crate::path_to_string;
 use crate::util::{load_config, init_path};
-use crate::errors::{TerminalError, LayerSwordError, InternalError, raise, report, raise_debug};
+use crate::errors::{TerminalError, LayerSwordError, InternalError, raise};
 
 /// set logger and decide whether display by argument '**quiet**'
 fn parse_and_set_logger(sub: &ArgMatches) {
@@ -34,18 +33,10 @@ fn parse_and_set_logger(sub: &ArgMatches) {
 
 /// check path or its parent exists and normalize it to standard format
 fn normalize_path(path: PathBuf) -> Result<PathBuf, TerminalError> {
-    if path.is_dir() {
-        report(fs::canonicalize(path.clone()),
-               TerminalError::NotExistError { path: path_to_string!(path) })
+    if path.exists() {
+        Ok(raise(fs::canonicalize(path)))
     } else {
-        let mut path = path.to_path_buf();
-        path.pop();
-        if path.exists() {
-            report(fs::canonicalize(path.clone()),
-                   TerminalError::NotExistError { path: path_to_string!(path) })
-        } else {
-            Err(TerminalError::NotExistError { path: path_to_string!(path) })
-        }
+        Ok(path)
     }
 }
 
@@ -337,7 +328,7 @@ pub fn cli_main(args: Vec<String>) -> Result<(), LayerSwordError> {
 
     if let Some(sub) = matches.subcommand_matches("split") {
         let (target_path, work_path, out_path) =
-            parse_path(&sub, "split")?;
+            raise(parse_path(&sub, "split"));
         let level_str = sub.value_of("level")
             .ok_or_else(|| TerminalError::WithoutArgError {
                 arg: format!("level"),
